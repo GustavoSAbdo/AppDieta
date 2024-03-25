@@ -26,7 +26,7 @@ class _CustomSignInScreenState extends State<CustomSignInScreen> {
         String errorMessage;
         switch (e.code) {
           case 'user-not-found':
-            errorMessage = 'Usuário não encontrado.';
+            errorMessage = 'Email não encontrado.';
             break;
           case 'wrong-password':
             errorMessage = 'Senha incorreta.';
