@@ -40,6 +40,11 @@ class Refeicao {
   Refeicao({List<FoodItem>? items})
     : items = items ?? [];
 
+  double getTotalCalories(double totalDayCalories, int numRef) => totalDayCalories / numRef;
+  double getTotalProtein(double totalDayProtein, int numRef) => totalDayProtein / numRef;
+  double getTotalCarbs(double totalDayCarbs, int numRef) => totalDayCarbs / numRef;
+  double getTotalFats(double totalDayFats, int numRef) => totalDayFats / numRef;
+
   // Adiciona um item de comida à refeição
   void addFoodItem(FoodItem item) {
     items.add(item);
@@ -48,25 +53,5 @@ class Refeicao {
   // Remove um item de comida da refeição
   void removeFoodItem(FoodItem item) {
     items.remove(item);
-  }
-
-  // Calcula o total de calorias da refeição
-  double getTotalCalories() {
-    return items.fold(0, (total, item) => total + item.calories);
-  }
-
-  // Calcula o total de proteínas da refeição
-  double getTotalProtein() {
-    return items.fold(0, (total, item) => total + item.protein);
-  }
-
-  // Calcula o total de carboidratos da refeição
-  double getTotalCarbs() {
-    return items.fold(0, (total, item) => total + item.carbs);
-  }
-
-  // Calcula o total de gorduras da refeição
-  double getTotalFats() {
-    return items.fold(0, (total, item) => total + item.fats);
-  }
+  }  
 }

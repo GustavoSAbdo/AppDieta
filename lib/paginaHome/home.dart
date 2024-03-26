@@ -269,7 +269,12 @@ class _HomePageState extends State<HomePage> {
                 MyExpansionPanelListWidget(
                   userId: userId, 
                   refeicoes: refeicoes, 
-                  onRefeicaoUpdated: onRefeicaoUpdated, 
+                  onRefeicaoUpdated: onRefeicaoUpdated,
+                  totalDailyCalories: totalCalories,
+                  totalDailyProtein: totalProtein,
+                  totalDailyCarbs: totalCarbs,
+                  totalDailyFats: totalFats,
+                  numRef: numRef,
                 )
               ],
             ),

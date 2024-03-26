@@ -4,25 +4,39 @@ import 'package:flutter/material.dart';
 class SearchAndSelectFoodWidget extends StatefulWidget {
   final Function(Map<String, dynamic>) onFoodSelected;
 
-  SearchAndSelectFoodWidget({Key? key, required this.onFoodSelected}) : super(key: key);
+  SearchAndSelectFoodWidget({Key? key, required this.onFoodSelected})
+      : super(key: key);
 
   @override
-  _SearchAndSelectFoodWidgetState createState() => _SearchAndSelectFoodWidgetState();
+  _SearchAndSelectFoodWidgetState createState() =>
+      _SearchAndSelectFoodWidgetState();
 }
 
 class _SearchAndSelectFoodWidgetState extends State<SearchAndSelectFoodWidget> {
   String searchQuery = '';
   List<Map<String, dynamic>> selectedFoods = [];
+  final TextEditingController searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    searchController.dispose();
+    super.dispose();
+  }
 
   void addFoodToSelected(Map<String, dynamic> foodData) {
-  setState(() {
-    
-    selectedFoods.add(foodData);
-    
-    widget.onFoodSelected(foodData);
-  });
-}
- 
+    setState(() {
+      selectedFoods.add(foodData);
+      widget.onFoodSelected(foodData);
+    });
+    searchController.clear();
+    searchQuery = '';
+  }
+
+  void removeFoodAt(int index) {
+    setState(() {
+      selectedFoods.removeAt(index);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,6 +45,7 @@ class _SearchAndSelectFoodWidgetState extends State<SearchAndSelectFoodWidget> {
         Padding(
           padding: const EdgeInsets.all(8.0),
           child: TextField(
+            controller: searchController,
             decoration: const InputDecoration(
               labelText: 'Pesquisar Alimento',
               suffixIcon: Icon(Icons.search),
@@ -47,9 +62,14 @@ class _SearchAndSelectFoodWidgetState extends State<SearchAndSelectFoodWidget> {
               ? ListView.builder(
                   itemCount: selectedFoods.length,
                   itemBuilder: (context, index) {
+                    final food = selectedFoods[index];
                     return ListTile(
-                      title: Text(selectedFoods[index]['nome']),
-                      subtitle: Text('Calorias: ${selectedFoods[index]['kcal']}'),
+                      title: Text(food['nome']),
+                      subtitle: Text('Calorias: ${food['kcal']}'),
+                      trailing: IconButton(
+                        icon: Icon(Icons.remove_circle_outline),
+                        onPressed: () => removeFoodAt(index),
+                      ),
                     );
                   },
                 )
@@ -59,14 +79,22 @@ class _SearchAndSelectFoodWidgetState extends State<SearchAndSelectFoodWidget> {
                       .where('searchKeywords', arrayContains: searchQuery)
                       .snapshots(),
                   builder: (context, snapshot) {
-                    if (!snapshot.hasData) return const CircularProgressIndicator();
+                    if (!snapshot.hasData)
+                      return const CircularProgressIndicator();
 
-                    final results = snapshot.data!.docs.where((doc) => doc.get('nome').toString().toLowerCase().contains(searchQuery)).toList();
+                    final results = snapshot.data!.docs
+                        .where((doc) => doc
+                            .get('nome')
+                            .toString()
+                            .toLowerCase()
+                            .contains(searchQuery))
+                        .toList();
 
                     return ListView.builder(
                       itemCount: results.length,
                       itemBuilder: (context, index) {
-                        Map<String, dynamic> data = results[index].data() as Map<String, dynamic>;
+                        Map<String, dynamic> data =
+                            results[index].data() as Map<String, dynamic>;
                         return ListTile(
                           title: Text(data['nome']),
                           subtitle: Text('Calorias: ${data['kcal']}'),
