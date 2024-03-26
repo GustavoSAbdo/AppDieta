@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:complete/paginaHome/button/search_food.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:complete/paginaHome/classes.dart';
-import 'package:complete/paginaHome/home.dart';
 
 
 class AddRemoveFoodWidget extends StatefulWidget {
@@ -27,7 +26,7 @@ class _AddRemoveFoodWidgetState extends State<AddRemoveFoodWidget> {
       return StatefulBuilder( // Usa StatefulBuilder para gerenciar o estado local do diálogo
         builder: (context, setStateDialog) {
           return AlertDialog(
-            title: Text('Escolha uma Refeição'),
+            title: const Text('Escolha uma Refeição'),
             content: SingleChildScrollView(
               child: ListBody(
                 children: List<Widget>.generate(numRef, (i) => ListTile(
@@ -48,7 +47,7 @@ class _AddRemoveFoodWidgetState extends State<AddRemoveFoodWidget> {
             actions: <Widget>[
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: Text('Cancelar'),
+                child: const Text('Cancelar'),
               ),
               TextButton(
                 onPressed: () {
@@ -130,19 +129,19 @@ class _AddRemoveFoodWidgetState extends State<AddRemoveFoodWidget> {
       builder: (BuildContext context) {
         // Aqui retorna o widget para o popup de remover alimento
         return AlertDialog(
-          title: Text('Remover Alimento'),
-          content: Text('Implementar formulário de remoção aqui.'),
+          title: const Text('Remover Alimento'),
+          content: const Text('Implementar formulário de remoção aqui.'),
           actions: <Widget>[
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: Text('Cancelar'),
+              child: const Text('Cancelar'),
             ),
             TextButton(
               onPressed: () {
                 // Lógica para remover alimento
                 Navigator.of(context).pop();
               },
-              child: Text('Remover'),
+              child: const Text('Remover'),
             ),
           ],
         );
@@ -182,7 +181,7 @@ class _AddRemoveFoodWidgetState extends State<AddRemoveFoodWidget> {
                   child: Text('Remover Alimento'),
                 ),
               ],
-              icon: Icon(Icons.add),
+              icon: const Icon(Icons.add),
             ),
           );
         } else if (snapshot.connectionState == ConnectionState.waiting) {

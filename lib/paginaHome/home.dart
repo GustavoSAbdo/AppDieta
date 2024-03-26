@@ -36,6 +36,13 @@ class _HomePageState extends State<HomePage> {
     var newItems = List<FoodItem>.from(refeicoes[refeicaoIndex].items);
     newItems.add(foodItem);
     refeicoes[refeicaoIndex] = Refeicao(items: newItems);
+
+    updateNutrition(
+      foodItem.calories,
+      foodItem.protein,
+      foodItem.carbs,
+      foodItem.fats,
+    );
   });
 }
 
@@ -45,7 +52,7 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  void updateNutrition(int calories, int protein, int carbs, int fats) {
+  void updateNutrition(double calories, double protein, double carbs, double fats) {
     setState(() {
       currentCalories += calories;
       currentProtein += protein;
@@ -54,7 +61,7 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  void removeNutrition(int calories, int protein, int carbs, int fats) {
+  void removeNutrition(double calories, double protein, double carbs, double fats) {
     setState(() {
       currentCalories = (currentCalories - calories).clamp(0, totalCalories);
       currentProtein = (currentProtein - protein).clamp(0, totalProtein);

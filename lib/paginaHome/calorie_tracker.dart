@@ -3,7 +3,7 @@ import 'package:fl_chart/fl_chart.dart';
 
 class NutritionProgress extends StatefulWidget {
 
-  final Function(int calories, int protein, int carbs, int fats)
+  final Function(double calories, double protein, double carbs, double fats)
       onUpdateNutrition;
   // Adicionando os novos parâmetros
   final double currentCalories;
