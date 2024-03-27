@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 
 class SearchAndSelectFoodWidget extends StatefulWidget {
   final Function(Map<String, dynamic>) onFoodSelected;
+  final String nutrientDominant;
 
-  SearchAndSelectFoodWidget({Key? key, required this.onFoodSelected})
+  SearchAndSelectFoodWidget(
+      {Key? key, required this.onFoodSelected, required this.nutrientDominant})
       : super(key: key);
 
   @override
@@ -65,7 +67,7 @@ class _SearchAndSelectFoodWidgetState extends State<SearchAndSelectFoodWidget> {
                     final food = selectedFoods[index];
                     return ListTile(
                       title: Text(food['nome']),
-                      subtitle: Text('Calorias: ${food['kcal']}'),
+                      subtitle: Text('Calorias: ${food['kcal'].toStringAsFixed(2)}'),
                       trailing: IconButton(
                         icon: Icon(Icons.remove_circle_outline),
                         onPressed: () => removeFoodAt(index),
@@ -76,6 +78,8 @@ class _SearchAndSelectFoodWidgetState extends State<SearchAndSelectFoodWidget> {
               : StreamBuilder<QuerySnapshot>(
                   stream: FirebaseFirestore.instance
                       .collection('alimentos')
+                      .where('dominantNutrient',
+                          isEqualTo: widget.nutrientDominant)
                       .where('searchKeywords', arrayContains: searchQuery)
                       .snapshots(),
                   builder: (context, snapshot) {
@@ -97,7 +101,7 @@ class _SearchAndSelectFoodWidgetState extends State<SearchAndSelectFoodWidget> {
                             results[index].data() as Map<String, dynamic>;
                         return ListTile(
                           title: Text(data['nome']),
-                          subtitle: Text('Calorias: ${data['kcal']}'),
+                          subtitle: Text('Calorias: ${data['kcal'].toStringAsFixed(2)}'),
                           trailing: IconButton(
                             icon: Icon(Icons.add),
                             onPressed: () => addFoodToSelected(data),

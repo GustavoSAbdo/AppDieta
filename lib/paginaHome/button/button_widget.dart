@@ -77,24 +77,54 @@ class _AddRemoveFoodWidgetState extends State<AddRemoveFoodWidget> {
 
 
 
-  void _showAddFoodDialog(int selectedRefeicaoIndex) {
-  // Lista temporária para armazenar alimentos selecionados
+  void _showAddFoodDialog(int selectedRefeicaoIndex) async {
   List<FoodItem> tempSelectedFoods = [];
 
+  // Função para mostrar o diálogo de seleção de alimentos por macronutriente
+  Future<void> selectFoodByNutrient(String nutrient) async {
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Selecione uma fonte de $nutrient'),
+          content: SizedBox(
+            height: 300,
+            width: double.maxFinite,
+            child: SearchAndSelectFoodWidget(
+              nutrientDominant: nutrient, // Filtro de macronutriente
+              onFoodSelected: (Map<String, dynamic> selectedFood) {
+                // Converte o mapa do alimento selecionado para o objeto FoodItem e adiciona à lista temporária
+                FoodItem foodItem = FoodItem.fromMap(selectedFood);
+                tempSelectedFoods.add(foodItem);
+                Navigator.of(context).pop(); // Fecha o diálogo após a seleção
+              },
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancelar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Sequência de seleção: Carboidratos, Proteínas, Gorduras
+  await selectFoodByNutrient('carboidrato');
+  await selectFoodByNutrient('proteina');
+  await selectFoodByNutrient('gordura');
+
+  // Apresenta a visão geral dos alimentos selecionados para confirmação
   showDialog(
     context: context,
     builder: (BuildContext context) {
       return AlertDialog(
-        title: const Text('Adicionar Alimentos'),
-        content: SizedBox(
-          height: 300,
-          width: double.maxFinite,
-          child: SearchAndSelectFoodWidget(
-            onFoodSelected: (Map<String, dynamic> selectedFood) {
-              // Aqui, apenas adicionamos o alimento selecionado à lista temporária
-              FoodItem foodItem = FoodItem.fromMap(selectedFood);
-              tempSelectedFoods.add(foodItem);
-            },
+        title: const Text('Confirme os alimentos selecionados'),
+        content: SingleChildScrollView(
+          child: ListBody(
+            children: tempSelectedFoods.map((foodItem) => Text(foodItem.name)).toList(),
           ),
         ),
         actions: <Widget>[
@@ -102,17 +132,13 @@ class _AddRemoveFoodWidgetState extends State<AddRemoveFoodWidget> {
             onPressed: () => Navigator.of(context).pop(),
             child: const Text('Cancelar'),
           ),
-          // Botão para confirmar a adição dos alimentos selecionados
           TextButton(
             onPressed: () {
-              // Aqui, iteramos sobre os alimentos selecionados e os adicionamos à refeição
-              // Isso assume que você tem uma maneira de adicionar vários alimentos de uma vez ou
-              // que irá adicionar cada alimento individualmente dentro de onFoodAdded.
+              // Itera sobre os alimentos selecionados e os adiciona à refeição
               for (var foodItem in tempSelectedFoods) {
                 widget.onFoodAdded(selectedRefeicaoIndex, foodItem);
               }
-              // Fecha o diálogo após confirmar a adição
-              Navigator.of(context).pop();
+              Navigator.of(context).pop(); // Fecha o diálogo após confirmar a adição
             },
             child: const Text('Adicionar'),
           ),
@@ -121,6 +147,8 @@ class _AddRemoveFoodWidgetState extends State<AddRemoveFoodWidget> {
     },
   );
 }
+
+
 
 
   void _showRemoveFoodDialog() {
@@ -174,12 +202,12 @@ class _AddRemoveFoodWidgetState extends State<AddRemoveFoodWidget> {
               itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
                 const PopupMenuItem<String>(
                   value: 'add',
-                  child: Text('Adicionar Alimento'),
+                  child: Text('Adicionar Refeição'),
                 ),
-                const PopupMenuItem<String>(
-                  value: 'remove',
-                  child: Text('Remover Alimento'),
-                ),
+                // const PopupMenuItem<String>(
+                //   value: 'remove',
+                //   child: Text('Remover Alimento'),
+                // ),
               ],
               icon: const Icon(Icons.add),
             ),

@@ -18,21 +18,6 @@ class FoodItem {
   }
 }
 
-
-class ListItem {
-  final String name;
-  final String description;
-
-  ListItem({required this.name, required this.description});
-}
-
-class ListGroup {
-  final String title;
-  final List<ListItem> items;
-
-  ListGroup({required this.title, required this.items});
-}
-
 class Refeicao {
   
   List<FoodItem> items;
