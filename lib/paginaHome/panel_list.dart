@@ -11,6 +11,7 @@ class MyExpansionPanelListWidget extends StatefulWidget {
   final double totalDailyCarbs;
   final double totalDailyFats;
   final int numRef;
+  final MealGoal mealGoal;
 
   const MyExpansionPanelListWidget({
     Key? key,
@@ -22,6 +23,7 @@ class MyExpansionPanelListWidget extends StatefulWidget {
     required this.totalDailyCarbs,
     required this.totalDailyFats,
     required this.numRef,
+    required this.mealGoal
   }) : super(key: key);
 
   @override
@@ -33,11 +35,7 @@ class _MyExpansionPanelListWidgetState
     extends State<MyExpansionPanelListWidget> {
   @override
   Widget build(BuildContext context) {
-    // Aqui você divide igualmente os nutrientes pelo número de refeições.
-    // double mealCalories = widget.totalDailyCalories / widget.numRef;
-    // double mealProtein = widget.totalDailyProtein / widget.numRef;
-    // double mealCarbs = widget.totalDailyCarbs / widget.numRef;
-    // double mealFats = widget.totalDailyFats / widget.numRef;
+    MealGoal mealGoal = widget.mealGoal;
 
     return SingleChildScrollView(
       child: ExpansionPanelList.radio(
@@ -60,7 +58,7 @@ class _MyExpansionPanelListWidgetState
                 // Listagem dos itens alimentares com seus detalhes
                 ...refeicao.items
                     .map((foodItem) => ListTile(
-                          title: Text(foodItem.name),
+                          title: Text('${foodItem.quantity.toStringAsFixed(1)}g de ${foodItem.name}'),
                           subtitle: Text(
                               'Calorias: ${foodItem.calories.toStringAsFixed(2)}, Proteínas: ${foodItem.protein.toStringAsFixed(2)}, Carboidratos: ${foodItem.carbs.toStringAsFixed(2)}, Gorduras: ${foodItem.fats.toStringAsFixed(2)}'),
                         ))
@@ -77,19 +75,19 @@ class _MyExpansionPanelListWidgetState
                         CrossAxisAlignment.start, // Alinha o texto à esquerda
                     children: [
                       Text(
-                        '🔥 Calorias da refeição: ${refeicao.items.fold(0.0, (double prev, item) => prev + item.calories).toStringAsFixed(2)}',
+                        '🔥 Calorias da refeição: ${refeicao.items.fold(0.0, (double prev, item) => prev + item.calories).toStringAsFixed(2)} / ${mealGoal.totalCalories.toStringAsFixed(2)}',
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                       Text(
-                        '🍗 Proteínas da refeição: ${refeicao.items.fold(0.0, (double prev, item) => prev + item.protein).toStringAsFixed(2)}',
+                        '🍗 Proteínas da refeição: ${refeicao.items.fold(0.0, (double prev, item) => prev + item.protein).toStringAsFixed(2)} / ${mealGoal.totalProtein.toStringAsFixed(2)}',
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                       Text(
-                        '🍞 Carboidratos da refeição: ${refeicao.items.fold(0.0, (double prev, item) => prev + item.carbs).toStringAsFixed(2)}',
+                        '🍞 Carboidratos da refeição: ${refeicao.items.fold(0.0, (double prev, item) => prev + item.carbs).toStringAsFixed(2)} / ${mealGoal.totalCarbs.toStringAsFixed(2)}',
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                       Text(
-                        '🥑 Gorduras da refeição: ${refeicao.items.fold(0.0, (double prev, item) => prev + item.fats).toStringAsFixed(2)}',
+                        '🥑 Gorduras da refeição: ${refeicao.items.fold(0.0, (double prev, item) => prev + item.fats).toStringAsFixed(2)} / ${mealGoal.totalFats.toStringAsFixed(2)}',
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ],

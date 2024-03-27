@@ -101,7 +101,7 @@ class _SearchAndSelectFoodWidgetState extends State<SearchAndSelectFoodWidget> {
                             results[index].data() as Map<String, dynamic>;
                         return ListTile(
                           title: Text(data['nome']),
-                          subtitle: Text('Calorias: ${data['kcal'].toStringAsFixed(2)}'),
+                          subtitle: Text('Calorias: ${data['kcal'].toStringAsFixed(2)}, Carboidrato: ${data['carboidrato'].toStringAsFixed(2)}, Proteina: ${data['proteina'].toStringAsFixed(2)}, Gordura: ${data['gordura'].toStringAsFixed(2)}, '),
                           trailing: IconButton(
                             icon: Icon(Icons.add),
                             onPressed: () => addFoodToSelected(data),

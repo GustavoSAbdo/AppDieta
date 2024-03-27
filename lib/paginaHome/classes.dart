@@ -1,13 +1,31 @@
 class FoodItem {
   final String name;
-  final double calories;
-  final double protein;
-  final double carbs;
-  final double fats;
+  double calories; // por 100g
+  double protein; // por 100g
+  double carbs; // por 100g
+  double fats; // por 100g
+  double quantity; // Quantidade em gramas do alimento
 
-  FoodItem({required this.name, required this.calories, required this.protein, required this.carbs, required this.fats});
+  FoodItem({
+    required this.name,
+    required this.calories,
+    required this.protein,
+    required this.carbs,
+    required this.fats,
+    this.quantity = 100, // Valor padrão de 100g, pode ser ajustado
+  });
 
+  // Método para ajustar os valores nutricionais baseado na quantidade
+  void adjustForQuantity() {
+    // Ajusta os valores nutricionais para a quantidade especificada
+    double factor = quantity / 100;
+    calories *= factor;
+    protein *= factor;
+    carbs *= factor;
+    fats *= factor;
+  }
   factory FoodItem.fromMap(Map<String, dynamic> map) {
+    
     return FoodItem(
       name: map['nome'] as String,
       calories: (map['kcal'] as num?)?.toDouble() ?? 0.0, // Convertendo para double e tratando null
@@ -16,6 +34,27 @@ class FoodItem {
       fats: (map['gordura'] as num?)?.toDouble() ?? 0.0, // Convertendo para double e tratando null
     );
   }
+}
+
+class FoodItemWithQuantity {
+  FoodItem foodItem;
+  double quantity;
+
+  FoodItemWithQuantity({required this.foodItem, required this.quantity});
+}
+
+class MealGoal {
+  final double totalCalories;
+  final double totalProtein;
+  final double totalCarbs;
+  final double totalFats;
+
+  MealGoal({
+    required this.totalCalories,
+    required this.totalProtein,
+    required this.totalCarbs,
+    required this.totalFats,
+  });
 }
 
 class Refeicao {
