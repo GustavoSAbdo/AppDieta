@@ -351,7 +351,7 @@ class _HomePageState extends State<HomePage> {
                   totalCarbs: totalCarbs,
                   totalFats: totalFats,
                 ),
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
                 MyExpansionPanelListWidget(
                   userId: userId,
                   refeicoes: refeicoes,

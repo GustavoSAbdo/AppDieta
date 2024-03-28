@@ -66,7 +66,7 @@ class _AddRemoveFoodWidgetState extends State<AddRemoveFoodWidget> {
                       Navigator.of(context).pop(selectedRefeicao);
                     }
                   },
-                  child: Text('Próximo'),
+                  child: const Text('Próximo'),
                 ),
               ],
             );
@@ -88,52 +88,56 @@ class _AddRemoveFoodWidgetState extends State<AddRemoveFoodWidget> {
   }
 
   void _showAddFoodDialog(int selectedRefeicaoIndex) async {
-    List<FoodItem> tempSelectedFoodsCarb = [];
-    List<FoodItem> tempSelectedFoodsProtein = [];
-    List<FoodItem> tempSelectedFoodsFat = [];
-    print('MealGoal: Protein ${widget.mealGoal.totalProtein}, Carbs ${widget.mealGoal.totalCarbs}, Fats ${widget.mealGoal.totalFats}');
-    // Função para mostrar o diálogo de seleção de alimentos por macronutriente
-    Future<void> selectFoodByNutrient(
-        String nutrient, List<FoodItem> targetList) async {
-      await showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text('Selecione uma fonte de $nutrient'),
-            content: SizedBox(
-              height: 300,
-              width: double.maxFinite,
-              child: SearchAndSelectFoodWidget(
-                nutrientDominant: nutrient, // Filtro de macronutriente
-                onFoodSelected: (Map<String, dynamic> selectedFood) {
-                  // Converte o mapa do alimento selecionado para o objeto FoodItem e adiciona à lista correspondente
-                  FoodItem foodItem = FoodItem.fromMap(selectedFood);
-                  targetList.add(foodItem);
-                  Navigator.of(context).pop(); // Fecha o diálogo após a seleção
-                },
-              ),
-            ),
-            actions: <Widget>[
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Cancelar'),
-              ),
-            ],
-          );
-        },
-      );
-    }
+  List<FoodItem> tempSelectedFoodsCarb = [];
+  List<FoodItem> tempSelectedFoodsProtein = [];
+  List<FoodItem> tempSelectedFoodsFat = [];
+  bool shouldContinue = true; // Variável de controle
 
-    // Chama sequencialmente para cada categoria de macronutriente
-    await selectFoodByNutrient('carboidrato', tempSelectedFoodsCarb);
-    await selectFoodByNutrient('proteina', tempSelectedFoodsProtein);
-    await selectFoodByNutrient('gordura', tempSelectedFoodsFat);
+  // Função para mostrar o diálogo de seleção de alimentos por macronutriente
+  Future<void> selectFoodByNutrient(
+      String nutrient, List<FoodItem> targetList) async {
+    await showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Selecione um alimento em que a maioria das calorias é $nutrient'),
+          content: SizedBox(
+            height: 300,
+            width: double.maxFinite,
+            child: SearchAndSelectFoodWidget(
+              nutrientDominant: nutrient, // Filtro de macronutriente
+              onFoodSelected: (Map<String, dynamic> selectedFood) {
+                // Converte o mapa do alimento selecionado para o objeto FoodItem e adiciona à lista correspondente
+                FoodItem foodItem = FoodItem.fromMap(selectedFood);
+                targetList.add(foodItem);
+                Navigator.of(context).pop(); // Fecha o diálogo após a seleção
+              },
+            ),
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                shouldContinue = false; // Atualiza a variável de controle
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancelar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Chama sequencialmente para cada categoria de macronutriente
+  await selectFoodByNutrient('carboidrato', tempSelectedFoodsCarb);
+  if (!shouldContinue) return; // Verifica se deve continuar
+  await selectFoodByNutrient('proteina', tempSelectedFoodsProtein);
+  if (!shouldContinue) return; // Verifica se deve continuar
+  await selectFoodByNutrient('gordura', tempSelectedFoodsFat);
     mealGoal = widget.mealGoal;
-    List<FoodItemWithQuantity> allSelectedFoodsWithQuantities = calculateFoodQuantities(
-        tempSelectedFoodsCarb,
-        tempSelectedFoodsProtein,
-        tempSelectedFoodsFat,
-        widget.mealGoal);
+    List<FoodItemWithQuantity> allSelectedFoodsWithQuantities =
+        calculateFoodQuantities(tempSelectedFoodsCarb, tempSelectedFoodsProtein,
+            tempSelectedFoodsFat, widget.mealGoal);
 
     // Apresenta a visão geral das quantidades de alimentos selecionados para confirmação
     showDialog(
@@ -143,10 +147,12 @@ class _AddRemoveFoodWidgetState extends State<AddRemoveFoodWidget> {
           title: const Text('Confirme os alimentos e quantidades selecionados'),
           content: SingleChildScrollView(
             child: ListBody(
-              children: allSelectedFoodsWithQuantities.map((item) => ListTile(
-                title: Text(item.foodItem.name),
-                trailing: Text('${item.quantity.toStringAsFixed(2)}g'),
-              )).toList(),
+              children: allSelectedFoodsWithQuantities
+                  .map((item) => ListTile(
+                        title: Text(item.foodItem.name),
+                        trailing: Text('${item.quantity.toStringAsFixed(2)}g'),
+                      ))
+                  .toList(),
             ),
           ),
           actions: <Widget>[
@@ -156,14 +162,15 @@ class _AddRemoveFoodWidgetState extends State<AddRemoveFoodWidget> {
             ),
             TextButton(
               onPressed: () {
-                for (var foodItemWithQuantity in allSelectedFoodsWithQuantities) {
-                // Extrai FoodItem e a quantidade de FoodItemWithQuantity
-                FoodItem foodItem = foodItemWithQuantity.foodItem;
-                double quantity = foodItemWithQuantity.quantity;
+                for (var foodItemWithQuantity
+                    in allSelectedFoodsWithQuantities) {
+                  // Extrai FoodItem e a quantidade de FoodItemWithQuantity
+                  FoodItem foodItem = foodItemWithQuantity.foodItem;
+                  double quantity = foodItemWithQuantity.quantity;
 
-                // Chama widget.onFoodAdded com o FoodItem extraído e a quantidade
-                widget.onFoodAdded(selectedRefeicaoIndex, foodItem, quantity);
-              }
+                  // Chama widget.onFoodAdded com o FoodItem extraído e a quantidade
+                  widget.onFoodAdded(selectedRefeicaoIndex, foodItem, quantity);
+                }
                 Navigator.of(context).pop();
               },
               child: const Text('Confirmar'),
@@ -172,64 +179,168 @@ class _AddRemoveFoodWidgetState extends State<AddRemoveFoodWidget> {
         );
       },
     );
-}
+  }
 
   List<FoodItemWithQuantity> calculateFoodQuantities(List<FoodItem> carbs,
-    List<FoodItem> protein, List<FoodItem> fats, MealGoal goal) {
-    print(goal);
-    double currentProt, currentCarb, currentGord;
-    double holderProt, holderCarb, holderGord;
+      List<FoodItem> protein, List<FoodItem> fats, MealGoal goal) {
+    double currentProt = 0, currentCarb = 0, currentGord = 0;
+    double holderGord;
+
     List<FoodItemWithQuantity> result = [];
-    //foodQuantities[food.name] = quantity;
+    double porcMaisProt = goal.totalProtein * 1.05;
+    double porcMaisCarb = goal.totalCarbs * 1.05;
+    double porcMaisGord = goal.totalFats * 1.05;
+    double porcMenosProt = goal.totalProtein * 0.95;
+    double porcMenosCarb = goal.totalCarbs * 0.95;
+    double porcMenosGord = goal.totalFats * 0.95;
+
     FoodItem alimentoProt = protein[0];
-    double protAlimentoProt = alimentoProt.protein/100;
-    double carbAlimentoProt = alimentoProt.carbs/100;
-    double gordAlimentoProt = alimentoProt.fats/100;
-    double qntAlimentoProt;
-    
+    double protAlimentoProt = alimentoProt.protein / 100;
+    double carbAlimentoProt = alimentoProt.carbs / 100;
+    double gordAlimentoProt = alimentoProt.fats / 100;
+    double totalProtAlimentoProt = 0;
+    double totalCarbAlimentoProt = 0;
+    double totalGordAlimentoProt = 0;
+    double qntAlimentoProt = 0;
 
     FoodItem alimentoCarb = carbs[0];
-    double protAlimentoCarb = alimentoCarb.protein/100;
-    double carbAlimentoCarb = alimentoCarb.carbs/100;
-    double gordAlimentoCarb = alimentoCarb.fats/100;
-    double qntAlimentoCarb;
+    double protAlimentoCarb = alimentoCarb.protein / 100;
+    double carbAlimentoCarb = alimentoCarb.carbs / 100;
+    double gordAlimentoCarb = alimentoCarb.fats / 100;
+    double totalProtAlimentoCarb = 0;
+    double totalCarbAlimentoCarb = 0;
+    double totalGordAlimentoCarb = 0;
+    double qntAlimentoCarb = 0;
 
     FoodItem alimentoGord = fats[0];
-    double protAlimentoGord = alimentoGord.protein/100;
-    double carbAlimentoGord = alimentoGord.carbs/100;
-    double gordAlimentoGord = alimentoGord.fats/100;
-    double qntAlimentoGord;
-    holderProt = goal.totalProtein * 0.7;
-    
-    qntAlimentoProt = holderProt / protAlimentoProt;
-    holderProt = 0;
-    protAlimentoProt = protAlimentoProt * qntAlimentoProt;
-    carbAlimentoProt = carbAlimentoProt * qntAlimentoProt;
-    gordAlimentoProt = gordAlimentoProt * qntAlimentoProt;    
-    
-    holderGord = goal.totalFats * 0.5;
+    double protAlimentoGord = alimentoGord.protein / 100;
+    double carbAlimentoGord = alimentoGord.carbs / 100;
+    double gordAlimentoGord = alimentoGord.fats / 100;
+    double totalProtAlimentoGord = 0;
+    double totalCarbAlimentoGord = 0;
+    double totalGordAlimentoGord = 0;
+    double qntAlimentoGord = 0;
+
+    void calculaAlimentoProt() {
+      totalProtAlimentoProt = protAlimentoProt * qntAlimentoProt;
+      totalCarbAlimentoProt = carbAlimentoProt * qntAlimentoProt;
+      totalGordAlimentoProt = gordAlimentoProt * qntAlimentoProt;
+    }
+
+    // holderGord = goal.totalFats * 0.6;
+    // qntAlimentoGord = holderGord / gordAlimentoGord;
+
+    void calculaAlimentoGord() {
+      totalProtAlimentoGord = protAlimentoGord * qntAlimentoGord;
+      totalCarbAlimentoGord = carbAlimentoGord * qntAlimentoGord;
+      totalGordAlimentoGord = gordAlimentoGord * qntAlimentoGord;
+    }
+    //calculaAlimentoGord();
+
+    // holderCarb = goal.totalCarbs * 0.8;
+    // qntAlimentoCarb = holderCarb / carbAlimentoCarb;
+
+    void calculaAlimentoCarb() {
+      totalProtAlimentoCarb = protAlimentoCarb * qntAlimentoCarb;
+      totalCarbAlimentoCarb = carbAlimentoCarb * qntAlimentoCarb;
+      totalGordAlimentoCarb = gordAlimentoCarb * qntAlimentoCarb;
+    }
+
+    //calculaAlimentoCarb();
+
+    void calculaProt() {
+      currentProt =
+          totalProtAlimentoProt + totalProtAlimentoCarb + totalProtAlimentoGord;
+    }
+
+    void calculaCarb() {
+      currentCarb =
+          totalCarbAlimentoGord + totalCarbAlimentoCarb + totalCarbAlimentoProt;
+    }
+
+    void calculaGord() {
+      currentGord =
+          totalGordAlimentoGord + totalGordAlimentoCarb + totalGordAlimentoProt;
+    }
+
+    void calculaTudo() {
+      calculaCarb();
+      calculaProt();
+      calculaGord();
+    }
+
+    // holderProt = goal.totalProtein * 0.7;
+    // qntAlimentoProt = holderProt / protAlimentoProt;
+    // calculaAlimentoProt();
+    // calculaTudo();
+
+    holderGord = goal.totalFats * 0.7;
     qntAlimentoGord = holderGord / gordAlimentoGord;
-    holderGord = 0;
-    protAlimentoGord = protAlimentoGord * qntAlimentoGord;
-    carbAlimentoGord = carbAlimentoGord * qntAlimentoGord;
-    gordAlimentoGord = gordAlimentoGord * qntAlimentoGord; 
+    calculaAlimentoGord();
+    calculaTudo();
 
+    qntAlimentoProt = ((goal.totalProtein - currentProt) / protAlimentoProt) * 0.9;
+    calculaAlimentoGord();
+    calculaTudo();
 
-    holderCarb = goal.totalCarbs * 0.8;
-    qntAlimentoCarb = holderCarb / carbAlimentoCarb;
-    holderCarb = 0;
-    protAlimentoCarb = protAlimentoCarb * qntAlimentoCarb;
-    carbAlimentoCarb = carbAlimentoCarb * qntAlimentoCarb;
-    gordAlimentoCarb = gordAlimentoCarb * qntAlimentoCarb;
+    qntAlimentoCarb = (goal.totalCarbs - currentCarb) / carbAlimentoCarb;
+    calculaAlimentoCarb();
+    calculaTudo();
 
-    currentProt = protAlimentoGord + protAlimentoCarb + protAlimentoProt;
-    currentCarb = carbAlimentoGord + carbAlimentoCarb + carbAlimentoProt;
-    currentGord = gordAlimentoGord + gordAlimentoCarb + gordAlimentoProt;
-    
-    result.add(FoodItemWithQuantity(foodItem: alimentoProt, quantity: qntAlimentoProt));
-    result.add(FoodItemWithQuantity(foodItem: alimentoCarb, quantity: qntAlimentoCarb));
-    result.add(FoodItemWithQuantity(foodItem: alimentoGord, quantity: qntAlimentoGord));
-    
+    for (int i = 0; i < 3; i++) {
+      // Gordura
+      if (currentGord > porcMaisGord || currentGord < porcMenosGord) {
+        if (currentGord < porcMenosGord) {
+          qntAlimentoGord = qntAlimentoGord +
+              ((goal.totalFats - currentGord) / gordAlimentoGord);
+        } else {
+          qntAlimentoGord = qntAlimentoGord -
+              ((currentGord - goal.totalFats) / gordAlimentoGord);
+        }
+        qntAlimentoGord =
+            max(qntAlimentoGord, 0); // Garante que não seja negativo
+        calculaAlimentoGord();
+        calculaTudo();
+      }
+
+      // Proteína
+      if (currentProt > porcMaisProt || currentProt < porcMenosProt) {
+        if (currentProt < porcMenosProt) {
+          qntAlimentoProt = qntAlimentoProt +
+              ((goal.totalProtein - currentProt) / protAlimentoProt);
+        } else {
+          qntAlimentoProt = qntAlimentoProt -
+              ((currentProt - goal.totalProtein) / protAlimentoProt);
+        }
+        qntAlimentoProt =
+            max(qntAlimentoProt, 0); // Garante que não seja negativo
+        calculaAlimentoProt();
+        calculaTudo();
+      }
+
+      // Carboidratos
+      if (currentCarb > porcMaisCarb || currentCarb < porcMenosCarb) {
+        if (currentCarb < porcMenosCarb) {
+          qntAlimentoCarb = qntAlimentoCarb +
+              ((goal.totalCarbs - currentCarb) / carbAlimentoCarb);
+        } else {
+          qntAlimentoCarb = qntAlimentoCarb -
+              ((currentCarb - goal.totalCarbs) / carbAlimentoCarb);
+        }
+        qntAlimentoCarb =
+            max(qntAlimentoCarb, 0); // Garante que não seja negativo
+        calculaAlimentoCarb();
+        calculaTudo();
+      }
+    }
+
+    result.add(FoodItemWithQuantity(
+        foodItem: alimentoProt, quantity: qntAlimentoProt));
+    result.add(FoodItemWithQuantity(
+        foodItem: alimentoCarb, quantity: qntAlimentoCarb));
+    result.add(FoodItemWithQuantity(
+        foodItem: alimentoGord, quantity: qntAlimentoGord));
+
     return result;
   }
 
