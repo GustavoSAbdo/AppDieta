@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart' hide EmailAuthProvider;
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class CustomSignInScreen extends StatefulWidget {
   @override
@@ -8,9 +9,8 @@ class CustomSignInScreen extends StatefulWidget {
 
 class _CustomSignInScreenState extends State<CustomSignInScreen> {
   final _formKey = GlobalKey<FormState>();
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
   Future<void> _signIn() async {
     if (_formKey.currentState!.validate()) {
       try {
@@ -21,6 +21,13 @@ class _CustomSignInScreenState extends State<CustomSignInScreen> {
         );
         // Se o login for bem-sucedido, navega para /home
         Navigator.of(context).pushReplacementNamed('/home');
+
+        // Salva o e-mail do usuário se _saveEmail for verdadeiro
+        if (_saveEmail.value) {
+          SharedPreferences prefs = await SharedPreferences.getInstance();
+          await prefs.setString('email', _emailController.text.trim());
+          await prefs.setBool('saveEmail', _saveEmail.value);
+        }
       } on FirebaseAuthException catch (e) {
         // Trata erros de login, como senha incorreta ou usuário não encontrado
         String errorMessage;
@@ -39,12 +46,12 @@ class _CustomSignInScreenState extends State<CustomSignInScreen> {
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            title: Text('Erro de login'),
+            title: const Text('Erro de login'),
             content: Text(errorMessage),
             actions: <Widget>[
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: Text('OK'),
+                child: const Text('OK'),
               ),
             ],
           ),
@@ -53,72 +60,127 @@ class _CustomSignInScreenState extends State<CustomSignInScreen> {
     }
   }
 
+final ValueNotifier<bool> _saveEmail = ValueNotifier<bool>(false);
+
+Future<void> _loadSaveEmailPreference() async {
+  try {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    bool? savedSaveEmail = prefs.getBool('saveEmail');
+    if (savedSaveEmail != null) {
+      _saveEmail.value = savedSaveEmail;
+    }
+  } catch (e) {
+  }
+}
+
+Future<void> _loadEmail() async {
+  try {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? savedEmail = prefs.getString('email');
+    if (savedEmail != null) {
+      _emailController.text = savedEmail;
+    }
+  } catch (e) {
+  }
+}
+
+ @override
+void initState() {
+  super.initState();
+  WidgetsBinding.instance!.addPostFrameCallback((_) {
+    _loadData();
+  });
+}
+
+void _loadData() async {
+  await _loadEmail();
+  await _loadSaveEmailPreference();
+}
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text("Login")),
-      body: Form(
-        key: _formKey,
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              TextFormField(
-                controller: _emailController,
-                decoration: InputDecoration(labelText: 'Email'),
-                validator: (value) {
-                  // Adiciona sua lógica de validação de e-mail aqui
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor, insira seu e-mail';
-                  }
-                  // Regex simples para validação de e-mail
-                  if (!RegExp(r'\b[\w\.-]+@[\w\.-]+\.\w{2,4}\b')
-                      .hasMatch(value)) {
-                    return 'Por favor, insira um e-mail válido';
-                  }
-                  return null; // Retorna null se o valor passar na validação
-                },
+    return FutureBuilder(
+      future: Future.wait([_loadEmail(), _loadSaveEmailPreference()]),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.done) {
+          return Scaffold(
+            appBar: AppBar(title: const Text("Login")),
+            body: Form(
+              key: _formKey,
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  children: [
+                    TextFormField(
+                      controller: _emailController,
+                      decoration: const InputDecoration(labelText: 'Email'),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Por favor, insira seu e-mail';
+                        }
+                        if (!RegExp(r'\b[\w\.-]+@[\w\.-]+\.\w{2,4}\b')
+                            .hasMatch(value)) {
+                          return 'Por favor, insira um e-mail válido';
+                        }
+                        return null;
+                      },
+                    ),
+                    ValueListenableBuilder<bool>(
+  valueListenable: _saveEmail,
+  builder: (context, saveEmail, child) {
+    return CheckboxListTile(
+      title: const Text("Salvar e-mail"),
+      value: saveEmail,
+      onChanged: (newValue) {
+        _saveEmail.value = newValue ?? _saveEmail.value;
+      },
+      controlAffinity: ListTileControlAffinity.leading,
+    );
+  },
+),
+                    TextFormField(
+                      controller: _passwordController,
+                      decoration: const InputDecoration(labelText: 'Senha'),
+                      obscureText: true,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Por favor, insira sua senha';
+                        }
+                        return null;
+                      },
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        if (_formKey.currentState != null &&
+                            _formKey.currentState!.validate()) {
+                          _signIn();
+                        }
+                      },
+                      child: const Text('Entrar'),
+                    ),
+                    const SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text("Ainda não tem conta?"),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context)
+                                .pushReplacementNamed('/register');
+                          },
+                          child: const Text('Registre-se'),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-              TextFormField(
-                controller: _passwordController,
-                decoration: InputDecoration(labelText: 'Senha'),
-                obscureText: true, // Oculta o texto
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor, insira sua senha';
-                  }
-                  return null;
-                },
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  // Valida o formulário e prossegue com o login se estiver tudo certo
-                  if (_formKey.currentState!.validate()) {
-                    _signIn();
-                  }
-                },
-                child: Text('Entrar'),
-              ),
-              SizedBox(height: 20),
-
-              // Adiciona um link para a tela de registro
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text("Ainda não tem conta?"),
-                  TextButton(
-                    onPressed: () {
-                      // Navega para a tela de registro
-                      Navigator.of(context).pushReplacementNamed('/register');
-                    },
-                    child: Text('Registre-se'),
-                  ),                
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
+            ),
+          );
+        } else {
+          return const Center(child: CircularProgressIndicator());
+        }
+      },
     );
   }
 }

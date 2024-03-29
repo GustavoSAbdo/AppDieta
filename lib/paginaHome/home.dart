@@ -1,4 +1,5 @@
 import 'package:complete/paginaHome/classes.dart';
+import 'package:complete/paginaHome/nutrition_service.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -6,6 +7,10 @@ import 'calorie_tracker.dart';
 import 'panel_list.dart';
 import 'button/button_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:complete/style/theme_changer.dart';
+import 'package:provider/provider.dart';
+import 'local_database_helper.dart';
+import 'dart:convert';
 
 class HomePage extends StatefulWidget {
   final String userId;
@@ -32,6 +37,8 @@ class _HomePageState extends State<HomePage> {
   double currentCarbs = 0;
   double currentFats = 0;
 
+  final NutritionService nutritionService = NutritionService();
+
   MealGoal calculateMealGoalForSingleMeal(double totalCalories,
       double totalProtein, double totalCarbs, double totalFats, int numRef) {
     // Assegura que você tenha o total diário e o número de refeições
@@ -48,55 +55,8 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  MealGoal calculateNutritionalGoals(Map<String, dynamic> userData) {
-    double peso = userData['peso'] is double
-        ? userData['peso']
-        : double.tryParse(userData['peso'].toString()) ?? 0;
-    String objetivo = userData['objetivo'];
-    String nivelAtividade = userData['nivelAtividade'];
-    double coeficiente = objetivo == 'perderPeso'
-        ? 0.8
-        : objetivo == 'ganharPeso'
-            ? 1.2
-            : 1;
-    double tmb = double.tryParse(userData['tmb'].toString()) ?? 0;
-
-    double totalFats = peso * 1;
-    double totalCalories;
-    double totalProtein;
-    double totalCarbs;
-
-    switch (nivelAtividade) {
-      case 'sedentario':
-        totalCalories = tmb * coeficiente;
-        break;
-      case 'atividadeLeve':
-        totalCalories = tmb * 1.2 * coeficiente;
-        break;
-      case 'atividadeModerada':
-        totalCalories = tmb * 1.4 * coeficiente;
-        break;
-      case 'muitoAtivo':
-        totalCalories = tmb * 1.6 * coeficiente;
-        break;
-      default:
-        totalCalories = tmb * 1.8 * coeficiente;
-        break;
-    }
-
-    totalProtein = peso * (nivelAtividade == 'muitoAtivo' ? 2 : 1.5);
-    totalCarbs = (totalCalories - (totalFats * 9 + totalProtein * 4)) / 4;
-
-    return MealGoal(
-      totalCalories: totalCalories,
-      totalProtein: totalProtein,
-      totalCarbs: totalCarbs,
-      totalFats: totalFats,
-    );
-  }
-
   void addFoodToRefeicao(
-      int refeicaoIndex, FoodItem foodItem, double quantity) {
+      int refeicaoIndex, FoodItem foodItem, double quantity) async {
     setState(() {
       foodItem.quantity = quantity; // Define a quantidade do alimento
       foodItem
@@ -113,6 +73,7 @@ class _HomePageState extends State<HomePage> {
         foodItem.fats,
       );
     });
+
   }
 
   void onRefeicaoUpdated(int index, Refeicao refeicao) {
@@ -152,49 +113,13 @@ class _HomePageState extends State<HomePage> {
           userData = userDataSnapshot.data() as Map<String, dynamic>?;
           int numRef = int.tryParse(userData!['numRefeicoes'].toString()) ?? 0;
           refeicoes = List<Refeicao>.generate(numRef, (_) => Refeicao());
-          double tmb = double.tryParse(userData!['tmb'].toString()) ?? 0;
-          double peso = userData!['peso'] is double
-              ? userData!['peso']
-              : double.tryParse(userData!['peso'].toString()) ?? 0;
-          String objetivo = userData!['objetivo'];
-          String nivelAtividade = userData!['nivelAtividade'];
-          totalFats = peso * 1;
-          double coeficiente = 1;
-
-          if (objetivo == 'perderPeso') {
-            coeficiente = 0.8;
-          } else if (objetivo == 'ganharPeso') {
-            coeficiente = 1.2;
-          } else {}
-
-          if (nivelAtividade == 'sedentario') {
-            totalCalories = (tmb * 1) * coeficiente;
-            totalProtein = peso * 1;
-            totalCarbs =
-                (totalCalories - (totalFats * 9 + totalProtein * 4)) / 4;
-          } else if (nivelAtividade == 'atividadeLeve') {
-            totalCalories = (tmb * 1.2) * coeficiente;
-            totalProtein = peso * 1.2;
-            totalCarbs =
-                (totalCalories - (totalFats * 9 + totalProtein * 4)) / 4;
-          } else if (nivelAtividade == 'atividadeModerada') {
-            totalCalories = (tmb * 1.4) * coeficiente;
-            totalProtein = peso * 1.5;
-            totalCarbs =
-                (totalCalories - (totalFats * 9 + totalProtein * 4)) / 4;
-          } else if (nivelAtividade == 'muitoAtivo') {
-            totalCalories = (tmb * 1.6) * coeficiente;
-            totalProtein = peso * 2;
-            totalCarbs =
-                (totalCalories - (totalFats * 9 + totalProtein * 4)) / 4;
-          } else {
-            totalCalories = (tmb * 1.8) * coeficiente;
-            totalProtein = peso * 2.2;
-            totalCarbs = 0;
-            totalCarbs =
-                (totalCalories - (totalFats * 9 + totalProtein * 4)) / 4;
-          }
-        singleMealGoal = calculateMealGoalForSingleMeal(totalCalories, totalProtein, totalCarbs, totalFats, numRef);        
+          MealGoal goal = nutritionService.calculateNutritionalGoals(userData!);
+          totalCalories = goal.totalCalories;
+          totalProtein = goal.totalProtein;
+          totalCarbs = goal.totalCarbs;
+          totalFats = goal.totalFats;
+          singleMealGoal = calculateMealGoalForSingleMeal(
+              totalCalories, totalProtein, totalCarbs, totalFats, numRef);
         });
         checkAndResetRefeicoes();
       }
@@ -216,6 +141,7 @@ class _HomePageState extends State<HomePage> {
             (_) =>
                 Refeicao()); // numRef deve ser atualizado a partir do Firebase
       });
+
       // Atualize a data do último reset para hoje
       await prefs.setString('lastResetDate', today);
     }
@@ -228,6 +154,8 @@ class _HomePageState extends State<HomePage> {
       checkAndResetRefeicoes();
     });
   }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -263,8 +191,6 @@ class _HomePageState extends State<HomePage> {
             snapshot.data!.data() as Map<String, dynamic>;
         String userName = userData['nome'] ?? 'Usuário';
 
-        
-
         // Construção do layout principal com os dados atualizados
         return Scaffold(
           appBar: AppBar(
@@ -296,6 +222,13 @@ class _HomePageState extends State<HomePage> {
                           color: Color.fromARGB(255, 51, 44, 44),
                         ),
                       ),
+                      IconButton(
+                        icon: const Icon(Icons.brightness_6),
+                        onPressed: () {
+                          Provider.of<ThemeNotifier>(context, listen: false)
+                              .toggleTheme();
+                        },
+                      )
                     ],
                   ),
                 ),

@@ -3,6 +3,8 @@ import 'package:complete/paginaRegLog/pag_registro_dois.dart';
 import 'package:complete/paginaRegLog/register_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:complete/style/theme_changer.dart';
 
 import 'paginaRegLog/auth_gate.dart';
 
@@ -11,18 +13,27 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-  String userId = FirebaseAuth.instance.currentUser!.uid;
-    return MaterialApp(
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
+    return ChangeNotifierProvider<ThemeNotifier>(
+      create: (_) => ThemeNotifier(),
+      child: Consumer<ThemeNotifier>(
+        builder: (context, ThemeNotifier notifier, child) {
+          return MaterialApp(
+            theme: ThemeData.light(),
+            darkTheme: ThemeData.dark(),
+            themeMode: notifier.darkTheme ? ThemeMode.dark : ThemeMode.light,
+            home: CustomSignInScreen(),
+            routes: {
+              '/login': (context) => CustomSignInScreen(),
+              '/home': (context) {
+                String? userId = FirebaseAuth.instance.currentUser?.uid;
+                return userId != null ? HomePage(userId: userId) : CustomSignInScreen();
+              },
+              '/register': (context) => RegisterPage(),
+              '/registerDois': (context) => RegistroParteDois()
+            },
+          );
+        },
       ),
-      home:  CustomSignInScreen(),
-      routes: {
-        '/login': (context) =>  CustomSignInScreen(),
-        '/home': (context) =>  HomePage(userId: userId),
-        '/register': (context) =>  RegisterPage(),
-        '/registerDois': (context) => RegistroParteDois()
-      },
     );
   }
 }
