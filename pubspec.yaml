@@ -24,14 +24,16 @@ dependencies:
   fl_chart: ^0.66.2
   shared_preferences: ^2.2.2
   provider: ^5.0.0
-  sqflite: ^2.3.2
-  path: ^1.9.0
-  sqflite_common_ffi: ^2.3.3
+  hive: ^2.2.3
+  dev: ^1.0.0
+  hive_flutter: ^1.1.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^3.0.0
+  build_runner: ^2.1.4
+  hive_generator: ^1.1.1
 
 flutter:
   uses-material-design: true

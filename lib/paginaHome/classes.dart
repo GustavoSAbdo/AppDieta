@@ -1,11 +1,11 @@
-
 class FoodItem {
   final String name;
   double calories; // por 100g
   double protein; // por 100g
   double carbs; // por 100g
   double fats; // por 100g
-  double quantity; // Quantidade em gramas do alimento
+  double quantity;
+  String dominantNutrient; // Quantidade em gramas do alimento
 
   FoodItem({
     required this.name,
@@ -13,7 +13,8 @@ class FoodItem {
     required this.protein,
     required this.carbs,
     required this.fats,
-    this.quantity = 100, // Valor padrão de 100g, pode ser ajustado
+    this.quantity = 100,
+    this.dominantNutrient = '', // Valor padrão de 100g, pode ser ajustado
   });
 
   // Método para ajustar os valores nutricionais baseado na quantidade
@@ -28,40 +29,23 @@ class FoodItem {
 
   factory FoodItem.fromMap(Map<String, dynamic> map) {
     return FoodItem(
-      name: map['nome'] as String,
-      calories: (map['kcal'] as num?)?.toDouble() ??
-          0.0, // Convertendo para double e tratando null
-      protein: (map['proteina'] as num?)?.toDouble() ??
-          0.0, // Convertendo para double e tratando null
-      carbs: (map['carboidrato'] as num?)?.toDouble() ??
-          0.0, // Convertendo para double e tratando null
-      fats: (map['gordura'] as num?)?.toDouble() ??
-          0.0, // Convertendo para double e tratando null
+      name: map['nome'] as String? ?? '',
+      calories: (map['kcal'] as num?)?.toDouble() ?? 0.0,
+      protein: (map['proteina'] as num?)?.toDouble() ?? 0.0,
+      carbs: (map['carboidrato'] as num?)?.toDouble() ?? 0.0,
+      fats: (map['gordura'] as num?)?.toDouble() ?? 0.0,
+      dominantNutrient:
+          map['dominantNutrient'] as String? ?? '', // Adicione esta linha
     );
   }
-
-  Map<String, dynamic> toJson() => {
-        'name': name,
-        'calories': calories,
-        'protein': protein,
-        'carbs': carbs,
-        'fats': fats,
-        'quantity': quantity,
-      };
-
-  factory FoodItem.fromJson(Map<String, dynamic> json) => FoodItem(
-        name: json['name'],
-        calories: json['calories'],
-        protein: json['protein'],
-        carbs: json['carbs'],
-        fats: json['fats'],
-        quantity: json['quantity'],
-      );
 }
 
-class FoodItemWithQuantity { FoodItem foodItem; double quantity;
+class FoodItemWithQuantity {
+  FoodItem foodItem;
+  double quantity;
 
-FoodItemWithQuantity({required this.foodItem, required this.quantity}); }
+  FoodItemWithQuantity({required this.foodItem, required this.quantity});
+}
 
 class Refeicao {
   List<FoodItem> items;
@@ -85,14 +69,6 @@ class Refeicao {
   void removeFoodItem(FoodItem item) {
     items.remove(item);
   }
-
- Map<String, dynamic> toJson() => {
-    'items': items.map((item) => item.toJson()).toList(),
-  };
-
-  factory Refeicao.fromJson(Map<String, dynamic> json) => Refeicao(
-    items: (json['items'] as List).map((item) => FoodItem.fromJson(item as Map<String, dynamic>)).toList(),
-  );
 }
 
 class MealGoal {

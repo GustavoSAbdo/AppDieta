@@ -1,8 +1,12 @@
+import 'package:complete/main.dart';
+import 'package:complete/paginaHome/button/own_food_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:complete/paginaHome/button/search_food.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:complete/paginaHome/classes.dart';
 import 'dart:math';
+import 'package:complete/paginaHome/user_food_item.dart' as user_food_item;
+import 'package:complete/paginaHome/button/search_food_hive.dart';
 
 class AddRemoveFoodWidget extends StatefulWidget {
   final String userId;
@@ -22,6 +26,7 @@ class AddRemoveFoodWidget extends StatefulWidget {
 class _AddRemoveFoodWidgetState extends State<AddRemoveFoodWidget> {
   int selectedRefeicaoIndex = 0;
   late MealGoal mealGoal;
+  FoodDialogs? foodDialogs;
 
   void showRefeicaoDialog(int numRef) {
     // Define a variável selectedRefeicao fora do builder do showDialog
@@ -88,52 +93,95 @@ class _AddRemoveFoodWidgetState extends State<AddRemoveFoodWidget> {
   }
 
   void _showAddFoodDialog(int selectedRefeicaoIndex) async {
-  List<FoodItem> tempSelectedFoodsCarb = [];
-  List<FoodItem> tempSelectedFoodsProtein = [];
-  List<FoodItem> tempSelectedFoodsFat = [];
-  bool shouldContinue = true; // Variável de controle
+    List<FoodItem> tempSelectedFoodsCarb = [];
+    List<FoodItem> tempSelectedFoodsProtein = [];
+    List<FoodItem> tempSelectedFoodsFat = [];
+    bool shouldContinue = true; // Variável de controle
+    bool searchInOwnFoods =
+        false; // Variável para alternar entre os widgets de seleção de alimentos
 
-  // Função para mostrar o diálogo de seleção de alimentos por macronutriente
-  Future<void> selectFoodByNutrient(
-      String nutrient, List<FoodItem> targetList) async {
-    await showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Selecione um alimento em que a maioria das calorias é $nutrient'),
-          content: SizedBox(
-            height: 300,
-            width: double.maxFinite,
-            child: SearchAndSelectFoodWidget(
-              nutrientDominant: nutrient, // Filtro de macronutriente
-              onFoodSelected: (Map<String, dynamic> selectedFood) {
-                // Converte o mapa do alimento selecionado para o objeto FoodItem e adiciona à lista correspondente
-                FoodItem foodItem = FoodItem.fromMap(selectedFood);
-                targetList.add(foodItem);
-                Navigator.of(context).pop(); // Fecha o diálogo após a seleção
-              },
-            ),
-          ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () {
-                shouldContinue = false; // Atualiza a variável de controle
-                Navigator.of(context).pop();
-              },
-              child: const Text('Cancelar'),
-            ),
-          ],
-        );
-      },
-    );
-  }
+    // Função para mostrar o diálogo de seleção de alimentos por macronutriente
+    Future<void> selectFoodByNutrient(
+        String nutrient, List<FoodItem> targetList) async {
+      await showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return StatefulBuilder(
+            builder: (BuildContext context, StateSetter setState) {
+              return AlertDialog(
+                title: Text(
+                    'Selecione um alimento em que a maioria das calorias é $nutrient'),
+                content: SizedBox(
+                  height: 300,
+                  width: double.maxFinite,
+                  child: searchInOwnFoods
+                      ? SearchAndSelectFoodFromHiveWidget(
+                          nutrientDominant:
+                              nutrient, // Filtro de macronutriente
+                          foodBox: foodBox, // Passa foodBox como um argumento
+                          onFoodSelected:
+                              (user_food_item.FoodItem selectedFood) {
+                            // Adiciona o alimento selecionado à lista correspondente
+                            targetList
+                                .add(FoodItem.fromMap(selectedFood.toMap()));
+                            searchInOwnFoods =
+                                false; // Define searchInOwnFoods como false
+                            Navigator.of(context)
+                                .pop(); // Fecha o diálogo após a seleção
+                          },
+                        )
+                      : SearchAndSelectFoodWidget(
+                          nutrientDominant:
+                              nutrient, // Filtro de macronutriente
+                          onFoodSelected: (Map<String, dynamic> selectedFood) {
+                            // Converte o mapa do alimento selecionado para o objeto FoodItem e adiciona à lista correspondente
+                            FoodItem foodItem = FoodItem.fromMap(selectedFood);
+                            targetList.add(foodItem);
+                            searchInOwnFoods =
+                                false; // Define searchInOwnFoods como false
+                            Navigator.of(context)
+                                .pop(); // Fecha o diálogo após a seleção
+                          },
+                        ),
+                ),
+                actions: <Widget>[
+                  TextButton(
+                    onPressed: () {
+                      shouldContinue = false; // Atualiza a variável de controle
+                      Navigator.of(context).pop();
+                    },
+                    child: const Text('Cancelar'),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      setState(() {
+                        searchInOwnFoods = !searchInOwnFoods;
+                      });
+                    },
+                    child: const Text('Procurar em alimentos próprios'),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      setState(() {
+                        searchInOwnFoods = false;
+                      });
+                    },
+                    child: const Text('Procurar alimentos'),
+                  ),
+                ],
+              );
+            },
+          );
+        },
+      );
+    }
 
-  // Chama sequencialmente para cada categoria de macronutriente
-  await selectFoodByNutrient('carboidrato', tempSelectedFoodsCarb);
-  if (!shouldContinue) return; // Verifica se deve continuar
-  await selectFoodByNutrient('proteina', tempSelectedFoodsProtein);
-  if (!shouldContinue) return; // Verifica se deve continuar
-  await selectFoodByNutrient('gordura', tempSelectedFoodsFat);
+    // Chama sequencialmente para cada categoria de macronutriente
+    await selectFoodByNutrient('carboidrato', tempSelectedFoodsCarb);
+    if (!shouldContinue) return; // Verifica se deve continuar
+    await selectFoodByNutrient('proteina', tempSelectedFoodsProtein);
+    if (!shouldContinue) return; // Verifica se deve continuar
+    await selectFoodByNutrient('gordura', tempSelectedFoodsFat);
     mealGoal = widget.mealGoal;
     List<FoodItemWithQuantity> allSelectedFoodsWithQuantities =
         calculateFoodQuantities(tempSelectedFoodsCarb, tempSelectedFoodsProtein,
@@ -279,7 +327,8 @@ class _AddRemoveFoodWidgetState extends State<AddRemoveFoodWidget> {
     calculaAlimentoGord();
     calculaTudo();
 
-    qntAlimentoProt = ((goal.totalProtein - currentProt) / protAlimentoProt) * 0.9;
+    qntAlimentoProt =
+        ((goal.totalProtein - currentProt) / protAlimentoProt) * 0.9;
     calculaAlimentoGord();
     calculaTudo();
 
@@ -344,34 +393,16 @@ class _AddRemoveFoodWidgetState extends State<AddRemoveFoodWidget> {
     return result;
   }
 
-  void _showRemoveFoodDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        // Aqui retorna o widget para o popup de remover alimento
-        return AlertDialog(
-          title: const Text('Remover Alimento'),
-          content: const Text('Implementar formulário de remoção aqui.'),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancelar'),
-            ),
-            TextButton(
-              onPressed: () {
-                // Lógica para remover alimento
-                Navigator.of(context).pop();
-              },
-              child: const Text('Remover'),
-            ),
-          ],
-        );
-      },
-    );
+  @override
+  void initState() {
+    super.initState();
+    foodDialogs =
+        foodDialogs ?? FoodDialogs(context: context, foodBox: foodBox);
   }
 
   @override
   Widget build(BuildContext context) {
+    foodDialogs = foodDialogs ?? FoodDialogs(context: context, foodBox: foodBox);
     return StreamBuilder<DocumentSnapshot>(
       stream: FirebaseFirestore.instance
           .collection('users')
@@ -386,10 +417,17 @@ class _AddRemoveFoodWidgetState extends State<AddRemoveFoodWidget> {
             onPressed: () {},
             child: PopupMenuButton<String>(
               onSelected: (String value) {
+                print('Button clicked: $value');
                 if (value == 'add') {
                   showRefeicaoDialog(numRef);
                 } else if (value == 'remove') {
-                  _showRemoveFoodDialog();
+                  print('Calling showDeleteFoodDialog');
+                  print('foodDialogs is null: ${foodDialogs == null}');
+                  foodDialogs!.showDeleteFoodDialog(context);
+                } else if (value == 'addOwn') {
+                  print('Calling showAddOwnFoodDialog');
+                  print('foodDialogs is null: ${foodDialogs == null}');
+                  foodDialogs!.showAddOwnFoodDialog();
                 }
               },
               itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
@@ -397,10 +435,14 @@ class _AddRemoveFoodWidgetState extends State<AddRemoveFoodWidget> {
                   value: 'add',
                   child: Text('Adicionar Refeição'),
                 ),
-                // const PopupMenuItem<String>(
-                //   value: 'remove',
-                //   child: Text('Remover Alimento'),
-                // ),
+                const PopupMenuItem<String>(
+                  value: 'addOwn',
+                  child: Text('Adicionar Alimento Próprio'),
+                ),
+                const PopupMenuItem<String>(
+                  value: 'remove',
+                  child: Text('Remover Alimento Próprio'),
+                ),
               ],
               icon: const Icon(Icons.add),
             ),

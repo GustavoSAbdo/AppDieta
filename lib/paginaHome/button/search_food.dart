@@ -39,6 +39,7 @@ class _SearchAndSelectFoodWidgetState extends State<SearchAndSelectFoodWidget> {
       selectedFoods.removeAt(index);
     });
   }
+  
 
   @override
   Widget build(BuildContext context) {
