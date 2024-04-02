@@ -91,15 +91,6 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  void removeNutrition(
-      double calories, double protein, double carbs, double fats) {
-    setState(() {
-      currentCalories = (currentCalories - calories).clamp(0, totalCalories);
-      currentProtein = (currentProtein - protein).clamp(0, totalProtein);
-      currentCarbs = (currentCarbs - carbs).clamp(0, totalCarbs);
-      currentFats = (currentFats - fats).clamp(0, totalFats);
-    });
-  }
 
   Future<void> fetchUserData() async {
     User? user = FirebaseAuth.instance.currentUser;

@@ -8,8 +8,6 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:complete/paginaHome/user_food_item.dart';
 
 late Box<FoodItem> foodBox;
-//TODO(codelab user): Get API key
-const clientId = 'YOUR_CLIENT_ID';
 
 void main() async {
   Hive.registerAdapter(FoodItemAdapter());

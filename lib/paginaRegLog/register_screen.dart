@@ -68,6 +68,7 @@ class _RegisterPageState extends State<RegisterPage> {
           .createUserWithEmailAndPassword(
               email: _emailController.text, password: _passwordController.text);
 
+      await userCredential.user?.sendEmailVerification();
       // Recupera o UID do usuário recém-criado
       final String uid = userCredential.user!.uid;
 
@@ -376,7 +377,8 @@ class _RegisterPageState extends State<RegisterPage> {
                   ),
                   ElevatedButton(
                     onPressed: () {
-                      Navigator.pop(context); // Retorna à tela anterior
+                      Navigator.of(context)
+                                .pushReplacementNamed('/login'); // Retorna à tela anterior
                     },
                     style: ElevatedButton.styleFrom(
                       foregroundColor: Colors.grey,

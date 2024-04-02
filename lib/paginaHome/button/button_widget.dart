@@ -27,6 +27,7 @@ class _AddRemoveFoodWidgetState extends State<AddRemoveFoodWidget> {
   int selectedRefeicaoIndex = 0;
   late MealGoal mealGoal;
   FoodDialogs? foodDialogs;
+  List<int> modifiedMeals = [];
 
   void showRefeicaoDialog(int numRef) {
     // Define a variável selectedRefeicao fora do builder do showDialog
@@ -49,7 +50,7 @@ class _AddRemoveFoodWidgetState extends State<AddRemoveFoodWidget> {
                             leading: Radio<int>(
                               value: i,
                               groupValue: selectedRefeicao,
-                              onChanged: (int? value) {
+                              onChanged: modifiedMeals.contains(i) ? null : (int? value) {
                                 // Atualiza o estado do diálogo, não do widget inteiro
                                 setStateDialog(() {
                                   selectedRefeicao = value;
@@ -192,7 +193,7 @@ class _AddRemoveFoodWidgetState extends State<AddRemoveFoodWidget> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Confirme os alimentos e quantidades selecionados'),
+          title: const Text('Confira os alimentos e quantidades selecionados'),
           content: SingleChildScrollView(
             child: ListBody(
               children: allSelectedFoodsWithQuantities
@@ -219,6 +220,10 @@ class _AddRemoveFoodWidgetState extends State<AddRemoveFoodWidget> {
                   // Chama widget.onFoodAdded com o FoodItem extraído e a quantidade
                   widget.onFoodAdded(selectedRefeicaoIndex, foodItem, quantity);
                 }
+                // Adicione a refeição selecionada à lista de refeições modificadas
+                setState(() {
+                  modifiedMeals.add(selectedRefeicaoIndex);
+                });
                 Navigator.of(context).pop();
               },
               child: const Text('Confirmar'),
@@ -336,7 +341,7 @@ class _AddRemoveFoodWidgetState extends State<AddRemoveFoodWidget> {
     calculaAlimentoCarb();
     calculaTudo();
 
-    for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < 4; i++) {
       // Gordura
       if (currentGord > porcMaisGord || currentGord < porcMenosGord) {
         if (currentGord < porcMenosGord) {
@@ -417,16 +422,11 @@ class _AddRemoveFoodWidgetState extends State<AddRemoveFoodWidget> {
             onPressed: () {},
             child: PopupMenuButton<String>(
               onSelected: (String value) {
-                print('Button clicked: $value');
                 if (value == 'add') {
                   showRefeicaoDialog(numRef);
                 } else if (value == 'remove') {
-                  print('Calling showDeleteFoodDialog');
-                  print('foodDialogs is null: ${foodDialogs == null}');
                   foodDialogs!.showDeleteFoodDialog(context);
                 } else if (value == 'addOwn') {
-                  print('Calling showAddOwnFoodDialog');
-                  print('foodDialogs is null: ${foodDialogs == null}');
                   foodDialogs!.showAddOwnFoodDialog();
                 }
               },

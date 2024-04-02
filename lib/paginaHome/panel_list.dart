@@ -54,11 +54,12 @@ class _MyExpansionPanelListWidgetState
           int index = entry.key;
           Refeicao refeicao = entry.value;
 
-          double totalCalories = calculateTotal(refeicao.items, (item) => item.calories);
+          // double totalCalories = calculateTotal(refeicao.items, (item) => item.calories);
           double totalProtein = calculateTotal(refeicao.items, (item) => item.protein);
           double totalCarbs = calculateTotal(refeicao.items, (item) => item.carbs);
           double totalFats = calculateTotal(refeicao.items, (item) => item.fats);
-
+          double totalCalories = totalProtein * 4 + totalCarbs * 4 + totalFats * 9;
+          
           return ExpansionPanelRadio(
             value: index,
             headerBuilder: (BuildContext context, bool isExpanded) {

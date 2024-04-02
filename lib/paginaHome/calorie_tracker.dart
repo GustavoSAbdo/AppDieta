@@ -87,15 +87,13 @@ class _NutritionProgressState extends State<NutritionProgress> {
                     sections: [
                       PieChartSectionData(
                         color: Colors.blueAccent,
-                        value: (currentCalories / totalCalories) * 100,
+                        value: currentCalories >= totalCalories ? 100 : (currentCalories / totalCalories) * 100,
                         title: '',
                         radius: 30,
                       ),
                       PieChartSectionData(
                         color: Color.fromARGB(123, 240, 240, 240),
-                        value: 100 -
-                            (currentCalories / totalCalories) *
-                                100, // Completa o círculo
+                        value: currentCalories >= totalCalories ? 0 : 100 - (currentCalories / totalCalories) * 100, // Completa o círculo
                         title: '',
                         radius: 30,
                       ),

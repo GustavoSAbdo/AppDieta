@@ -3,7 +3,7 @@ import 'package:complete/paginaHome/user_food_item.dart';
 
 class FoodDialogs {
   final BuildContext context;
-  final foodBox; // Replace with the actual type of foodBox
+  final foodBox; 
 
   FoodDialogs({required this.context, required this.foodBox});
 

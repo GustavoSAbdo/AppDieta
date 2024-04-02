@@ -40,6 +40,8 @@ class NutritionService {
     totalProtein = peso * (nivelAtividade == 'muitoAtivo' ? 2 : 2);
     totalCarbs = (totalCalories - (totalFats * 9 + totalProtein * 4)) / 4;
 
+    totalCalories = totalProtein * 4 + totalCarbs * 4 + totalFats * 9;
+
     return MealGoal(
       totalCalories: totalCalories,
       totalProtein: totalProtein,
