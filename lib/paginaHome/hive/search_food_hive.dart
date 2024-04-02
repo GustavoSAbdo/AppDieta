@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:complete/paginaHome/user_food_item.dart' as user_food_item;
+import 'package:complete/paginaHome/hive/hive_food_item.dart';
 
 
 class SearchAndSelectFoodFromHiveWidget extends StatefulWidget {
-  final Function(user_food_item.FoodItem) onFoodSelected;
+  final Function(HiveFoodItem) onFoodSelected;
   final String nutrientDominant;
-  final Box<user_food_item.FoodItem> foodBox;
+  final Box<HiveFoodItem> foodBox;
 
   SearchAndSelectFoodFromHiveWidget(
       {Key? key, required this.onFoodSelected, required this.nutrientDominant, required this.foodBox})
@@ -21,7 +21,7 @@ class SearchAndSelectFoodFromHiveWidget extends StatefulWidget {
 class _SearchAndSelectFoodFromHiveWidgetState
     extends State<SearchAndSelectFoodFromHiveWidget> {
   String searchQuery = '';
-  List<user_food_item.FoodItem> selectedFoods = [];
+  List<HiveFoodItem> selectedFoods = [];
   final TextEditingController searchController = TextEditingController();
 
   @override
@@ -30,7 +30,7 @@ class _SearchAndSelectFoodFromHiveWidgetState
     super.dispose();
   }
 
-  void addFoodToSelected(user_food_item.FoodItem foodItem) {
+  void addFoodToSelected(HiveFoodItem foodItem) {
     setState(() {
       selectedFoods.add(foodItem);
       widget.onFoodSelected(foodItem);
@@ -83,7 +83,7 @@ class _SearchAndSelectFoodFromHiveWidgetState
               : ListView.builder(
                   itemCount: widget.foodBox.length,
                   itemBuilder: (context, index) {
-                    user_food_item.FoodItem? foodItem = widget.foodBox.getAt(index);
+                    HiveFoodItem? foodItem = widget.foodBox.getAt(index);
                     if (foodItem != null &&
                         foodItem.name.toLowerCase().contains(searchQuery) &&
                         foodItem.dominantNutrient == widget.nutrientDominant) {

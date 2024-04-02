@@ -85,7 +85,7 @@ class _CustomSignInScreenState extends State<CustomSignInScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance!.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadData();
     });
   }

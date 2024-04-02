@@ -5,8 +5,8 @@ import 'package:complete/paginaHome/button/search_food.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:complete/paginaHome/classes.dart';
 import 'dart:math';
-import 'package:complete/paginaHome/user_food_item.dart' as user_food_item;
-import 'package:complete/paginaHome/button/search_food_hive.dart';
+import 'package:complete/paginaHome/hive/hive_food_item.dart';
+import 'package:complete/paginaHome/hive/search_food_hive.dart';
 
 class AddRemoveFoodWidget extends StatefulWidget {
   final String userId;
@@ -121,7 +121,7 @@ class _AddRemoveFoodWidgetState extends State<AddRemoveFoodWidget> {
                               nutrient, // Filtro de macronutriente
                           foodBox: foodBox, // Passa foodBox como um argumento
                           onFoodSelected:
-                              (user_food_item.FoodItem selectedFood) {
+                              (HiveFoodItem selectedFood) {
                             // Adiciona o alimento selecionado à lista correspondente
                             targetList
                                 .add(FoodItem.fromMap(selectedFood.toMap()));

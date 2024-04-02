@@ -9,7 +9,9 @@ import 'button/button_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:complete/style/theme_changer.dart';
 import 'package:provider/provider.dart';
-
+import 'package:complete/paginaHome/hive/hive_food_item.dart';
+import 'package:complete/paginaHome/hive/hive_refeicao.dart';
+import 'package:hive/hive.dart';
 
 class HomePage extends StatefulWidget {
   final String userId;
@@ -54,8 +56,35 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void addFoodToRefeicao(
+  Future<void> addFoodToRefeicao(
       int refeicaoIndex, FoodItem foodItem, double quantity) async {
+    // Obtenha a refeicaoBox do Provider
+    final refeicaoBox = Provider.of<Box<HiveRefeicao>>(context, listen: false);
+    double newQuantity = quantity;
+    double calories = foodItem.calories * quantity / 100;
+    double protein = foodItem.protein * quantity / 100;
+    double carbs = foodItem.carbs * quantity / 100;
+    double fats = foodItem.fats * quantity / 100;
+    // Converte FoodItem para HiveFoodItem
+    HiveFoodItem hiveFoodItem = HiveFoodItem(
+      name: foodItem.name,
+      calories: calories,
+      protein: protein,
+      carbs: carbs,
+      fats: fats,
+      quantity: newQuantity,
+      dominantNutrient: foodItem.dominantNutrient,
+    );
+
+    // Obtém a HiveRefeicao atual
+    HiveRefeicao hiveRefeicao =
+        refeicaoBox.getAt(refeicaoIndex) ?? HiveRefeicao(items: []);
+
+    // Adiciona o HiveFoodItem à HiveRefeicao
+    List<HiveFoodItem> newItems = List<HiveFoodItem>.from(hiveRefeicao.items);
+    newItems.add(hiveFoodItem);
+    hiveRefeicao = HiveRefeicao(items: newItems);
+
     setState(() {
       foodItem.quantity = quantity; // Define a quantidade do alimento
       foodItem
@@ -73,6 +102,8 @@ class _HomePageState extends State<HomePage> {
       );
     });
 
+    // Salva a HiveRefeicao atualizada no Hive
+    await refeicaoBox.putAt(refeicaoIndex, hiveRefeicao);
   }
 
   void onRefeicaoUpdated(int index, Refeicao refeicao) {
@@ -84,13 +115,12 @@ class _HomePageState extends State<HomePage> {
   void updateNutrition(
       double calories, double protein, double carbs, double fats) {
     setState(() {
-      currentCalories += calories;
       currentProtein += protein;
       currentCarbs += carbs;
       currentFats += fats;
+      currentCalories = currentProtein * 4 + currentCarbs * 4 + currentFats * 9;
     });
   }
-
 
   Future<void> fetchUserData() async {
     User? user = FirebaseAuth.instance.currentUser;
@@ -101,7 +131,7 @@ class _HomePageState extends State<HomePage> {
       if (userDataSnapshot.exists) {
         setState(() {
           userData = userDataSnapshot.data() as Map<String, dynamic>?;
-          int numRef = int.tryParse(userData!['numRefeicoes'].toString()) ?? 0;
+          numRef = int.tryParse(userData!['numRefeicoes'].toString()) ?? 0;
           refeicoes = List<Refeicao>.generate(numRef, (_) => Refeicao());
           MealGoal goal = nutritionService.calculateNutritionalGoals(userData!);
           totalCalories = goal.totalCalories;
@@ -111,41 +141,101 @@ class _HomePageState extends State<HomePage> {
           singleMealGoal = calculateMealGoalForSingleMeal(
               totalCalories, totalProtein, totalCarbs, totalFats, numRef);
         });
-        checkAndResetRefeicoes();
+        await adjustRefeicaoBoxSize(numRef);
       }
     }
   }
 
+  Future<void> adjustRefeicaoBoxSize(int newSize) async {
+    final refeicaoBox = Provider.of<Box<HiveRefeicao>>(context, listen: false);
+
+    // Expandir ou reduzir o tamanho da refeicaoBox para corresponder a newSize
+    while (refeicaoBox.length < newSize) {
+      await refeicaoBox.add(HiveRefeicao(items: []));
+    }
+
+    // Se por algum motivo o tamanho da box for maior que o necessário, você pode remover os excessos
+    // Isso deve ser usado com cuidado para não perder dados inadvertidamente
+    while (refeicaoBox.length > newSize) {
+      await refeicaoBox.deleteAt(refeicaoBox.length - 1);
+    }
+
+    // Atualize o estado para refletir as mudanças na UI, se necessário
+    setState(() {
+      // Atualize o estado conforme necessário
+    });
+  }
+
   Future<void> checkAndResetRefeicoes() async {
     final prefs = await SharedPreferences.getInstance();
-    String lastResetDate = prefs.getString('lastResetDate') ?? '';
-    String today = DateTime.now()
-        .toIso8601String()
-        .substring(0, 10); // Apenas a data, sem hora
+    final lastResetDate = prefs.getString('lastResetDate');
+    final today = DateTime.now();
+    final lastReset = DateTime.tryParse(lastResetDate ?? '') ?? DateTime(2000);
 
-    if (lastResetDate != today) {
-      // Se a data do último reset não for hoje, resete as refeições
+    if (!isSameDay(lastReset, today)) {
+      final refeicaoBox =
+          Provider.of<Box<HiveRefeicao>>(context, listen: false);
+      await refeicaoBox.clear();
+
+      await prefs.setString('lastResetDate', today.toIso8601String());
+
       setState(() {
-        refeicoes = List<Refeicao>.generate(
-            numRef,
-            (_) =>
-                Refeicao()); // numRef deve ser atualizado a partir do Firebase
+        refeicoes = List<Refeicao>.generate(numRef, (_) => Refeicao());
       });
-
-      // Atualize a data do último reset para hoje
-      await prefs.setString('lastResetDate', today);
     }
+  }
+
+  bool isSameDay(DateTime date1, DateTime date2) {
+    return date1.year == date2.year &&
+        date1.month == date2.month &&
+        date1.day == date2.day;
   }
 
   @override
   void initState() {
     super.initState();
-    fetchUserData().then((_) {
-      checkAndResetRefeicoes();
+
+    checkAndResetRefeicoes().then((_) {
+      fetchUserData().then((_) => loadRefeicoesFromHive());
     });
   }
 
+  Future<void> loadRefeicoesFromHive() async {
+    // Acessa a refeicaoBox do Provider sem ouvir por mudanças.
+    final Box<HiveRefeicao> refeicaoBox =
+        Provider.of<Box<HiveRefeicao>>(context, listen: false);
 
+    final List<Refeicao> loadedRefeicoes = [];
+
+    // Itera sobre todas as HiveRefeicao armazenadas na refeicaoBox.
+    for (var hiveRefeicao in refeicaoBox.values) {
+      // Converte HiveFoodItem para FoodItem e cria uma lista de FoodItem.
+      final foodItems = hiveRefeicao.items
+          .map((hiveFoodItem) => FoodItem(
+                name: hiveFoodItem.name,
+                calories: hiveFoodItem.calories,
+                protein: hiveFoodItem.protein,
+                carbs: hiveFoodItem.carbs,
+                fats: hiveFoodItem.fats,
+                quantity: hiveFoodItem.quantity,
+                dominantNutrient: hiveFoodItem.dominantNutrient,
+              ))
+          .toList();
+
+      // Adiciona a nova Refeicao convertida à lista de loadedRefeicoes.
+      loadedRefeicoes.add(Refeicao(items: foodItems));
+    }
+    for (var hiveRefeicao in refeicaoBox.values) {
+      for (var hiveFoodItem in hiveRefeicao.items) {
+        updateNutrition(hiveFoodItem.calories, hiveFoodItem.protein,
+            hiveFoodItem.carbs, hiveFoodItem.fats);
+      }
+    }
+    // Atualiza o estado para refletir as refeições carregadas.
+    setState(() {
+      refeicoes = loadedRefeicoes;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -225,9 +315,10 @@ class _HomePageState extends State<HomePage> {
                 ListTile(
                   leading: const Icon(Icons.account_circle),
                   title: const Text('Perfil'),
-                  onTap: () {
-                    print(
-                        'Definindo MealGoal na HomePage: Protein ${singleMealGoal.totalProtein}, Carbs ${singleMealGoal.totalCarbs}, Fats ${singleMealGoal.totalFats}');
+                  onTap: () async {
+                    final refeicaoBox =
+                        Provider.of<Box<HiveRefeicao>>(context, listen: false);
+                    await refeicaoBox.clear();
 
                     Navigator.pop(context); // Fecha o Drawer
                     // Navigator.pushNamed(

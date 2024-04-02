@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:complete/paginaHome/user_food_item.dart';
+import 'package:complete/paginaHome/hive/hive_food_item.dart';
 
 class FoodDialogs {
   final BuildContext context;
@@ -149,7 +149,7 @@ class FoodDialogs {
                     dominantNutrient = 'gordura';
                   }
 
-                  foodBox.add(FoodItem(
+                  foodBox.add(HiveFoodItem(
                     name: nameController.text,
                     calories: caloriesPer100g,
                     protein: proteinPer100g,
@@ -171,7 +171,7 @@ class FoodDialogs {
   }
 
   void showDeleteFoodDialog(BuildContext context) async {
-    List<FoodItem> foodsToDelete = [];
+    List<HiveFoodItem> foodsToDelete = [];
 
     await showDialog(
       context: context,
@@ -195,7 +195,7 @@ class FoodDialogs {
                               onChanged: (bool? value) {
                                 setState(() {
                                   if (value == true) {
-                                    foodsToDelete.add(food as FoodItem);
+                                    foodsToDelete.add(food as HiveFoodItem);
                                   } else {
                                     foodsToDelete.remove(food);
                                   }
@@ -216,7 +216,7 @@ class FoodDialogs {
                               onChanged: (bool? value) {
                                 setState(() {
                                   if (value == true) {
-                                    foodsToDelete.add(food as FoodItem);
+                                    foodsToDelete.add(food as HiveFoodItem);
                                   } else {
                                     foodsToDelete.remove(food);
                                   }

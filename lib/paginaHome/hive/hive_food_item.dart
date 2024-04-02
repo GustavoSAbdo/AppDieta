@@ -1,33 +1,34 @@
 import 'package:hive/hive.dart';
 
-part 'user_food_item.g.dart'; // Nome do arquivo gerado pelo Hive
+part 'hive_food_item.g.dart'; // Nome do arquivo gerado pelo Hive
 
-@HiveType(typeId: 1)
-class FoodItem {
+@HiveType(typeId: 0)
+class HiveFoodItem {
   @HiveField(0)
   final String name;
   @HiveField(1)
-  double calories; // por 100g
+  double calories;
   @HiveField(2)
-  double protein; // por 100g
+  double protein;
   @HiveField(3)
-  double carbs; // por 100g
+  double carbs;
   @HiveField(4)
-  double fats; // por 100g
+  double fats;
   @HiveField(5)
   double quantity;
   @HiveField(6)
-  String dominantNutrient; // Quantidade em gramas do alimento
+  String dominantNutrient;
 
-  FoodItem({
+  HiveFoodItem({
     required this.name,
     required this.calories,
     required this.protein,
     required this.carbs,
     required this.fats,
     this.quantity = 100,
-    required this.dominantNutrient // Valor padrão de 100g, pode ser ajustado
+    this.dominantNutrient = '',
   });
+
 
    Map<String, dynamic> toMap() {
     return {

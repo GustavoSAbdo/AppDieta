@@ -5,23 +5,31 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:complete/style/theme_changer.dart';
 import 'package:provider/provider.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:complete/paginaHome/user_food_item.dart';
+import 'package:complete/paginaHome/hive/hive_food_item.dart';
+import 'package:complete/paginaHome/hive/hive_refeicao.dart';
 
-late Box<FoodItem> foodBox;
+late Box<HiveFoodItem> foodBox;
 
 void main() async {
-  Hive.registerAdapter(FoodItemAdapter());
-  await Hive.initFlutter();
-  foodBox = await Hive.openBox<FoodItem>('foodBox');
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
+  await Hive.initFlutter();
+  Hive.registerAdapter(HiveFoodItemAdapter());
+  Hive.registerAdapter(HiveRefeicaoAdapter());
+
+  foodBox = await Hive.openBox<HiveFoodItem>('foodBox');
+  final refeicaoBox = await Hive.openBox<HiveRefeicao>('refeicaoBox');
+
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => ThemeNotifier(),
-      child: const MyApp(),
+    Provider<Box<HiveRefeicao>>.value(
+      value: refeicaoBox,
+      child: ChangeNotifierProvider(
+        create: (_) => ThemeNotifier(),
+        child: const MyApp(),
+      ),
     ),
   );
 }
