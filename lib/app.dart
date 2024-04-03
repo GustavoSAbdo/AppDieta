@@ -5,12 +5,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:complete/style/theme_changer.dart';
-
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'paginaRegLog/auth_gate.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
-
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider<ThemeNotifier>(
@@ -26,11 +25,21 @@ class MyApp extends StatelessWidget {
               '/login': (context) => CustomSignInScreen(),
               '/home': (context) {
                 String? userId = FirebaseAuth.instance.currentUser?.uid;
-                return userId != null ? HomePage(userId: userId) : CustomSignInScreen();
+                return userId != null
+                    ? HomePage(userId: userId)
+                    : CustomSignInScreen();
               },
               '/register': (context) => RegisterPage(),
               '/registerDois': (context) => RegistroParteDois()
             },
+            localizationsDelegates: const [
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: const [
+              Locale('pt', 'BR'), // Português do Brasil
+            ],
           );
         },
       ),

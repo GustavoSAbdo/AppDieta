@@ -102,163 +102,170 @@ class _CustomSignInScreenState extends State<CustomSignInScreen> {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.done) {
           return Scaffold(
-            appBar: AppBar(title: const Text("Login")),
-            body: Form(
-              key: _formKey,
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  children: [
-                    TextFormField(
-                      controller: _emailController,
-                      decoration: const InputDecoration(labelText: 'Email'),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Por favor, insira seu e-mail';
-                        }
-                        if (!RegExp(r'\b[\w\.-]+@[\w\.-]+\.\w{2,4}\b')
-                            .hasMatch(value)) {
-                          return 'Por favor, insira um e-mail válido';
-                        }
-                        return null;
-                      },
-                    ),
-                    ValueListenableBuilder<bool>(
-                      valueListenable: _saveEmail,
-                      builder: (context, saveEmail, child) {
-                        return CheckboxListTile(
-                          title: const Text("Salvar e-mail"),
-                          value: saveEmail,
-                          onChanged: (newValue) {
-                            _saveEmail.value = newValue ?? _saveEmail.value;
-                          },
-                          controlAffinity: ListTileControlAffinity.leading,
-                        );
-                      },
-                    ),
-                    TextFormField(
-                      controller: _passwordController,
-                      decoration: const InputDecoration(labelText: 'Senha'),
-                      obscureText: true,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Por favor, insira sua senha';
-                        }
-                        return null;
-                      },
-                    ),
-                    ElevatedButton(
-                      onPressed: () {
-                        if (_formKey.currentState != null &&
-                            _formKey.currentState!.validate()) {
-                          _signIn();
-                        }
-                      },
-                      child: const Text('Entrar'),
-                    ),
-                    const SizedBox(height: 20),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Text("Ainda não tem conta?"),
-                        TextButton(
-                          onPressed: () {
-                            Navigator.of(context)
-                                .pushReplacementNamed('/register');
-                          },
-                          child: const Text('Registre-se'),
-                        ),
-                      ],
-                    ),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Text("Esqueceu sua senha?"),
-                        TextButton(
-                          onPressed: () {
-                            showDialog(
-                              context: context,
-                              builder: (context) => AlertDialog(
-                                title: const Text('Redefinir senha'),
-                                content: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    // Text('Digite seu e-mail'),
-                                    TextFormField(
-                                      controller: _resetPasswordController,
-                                      decoration: const InputDecoration(
-                                          labelText: 'Digite seu e-mail'),
-                                      validator: (value) {
-                                        if (value == null || value.isEmpty) {
-                                          return 'Por favor, insira seu e-mail';
+            appBar: AppBar(title: const Text("")),
+            body: SingleChildScrollView(
+              // Adicionado SingleChildScrollView aqui
+              child: Form(
+                key: _formKey,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.only(
+                            left: 0), // Adicionado padding aqui
+                        child: Image.asset('assets/logo.png',
+                            width: 150, height: 150),
+                      ),
+                      TextFormField(
+                        controller: _emailController,
+                        decoration: const InputDecoration(labelText: 'Email'),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Por favor, insira seu e-mail';
+                          }
+                          if (!RegExp(r'\b[\w\.-]+@[\w\.-]+\.\w{2,4}\b')
+                              .hasMatch(value)) {
+                            return 'Por favor, insira um e-mail válido';
+                          }
+                          return null;
+                        },
+                      ),
+                      ValueListenableBuilder<bool>(
+                        valueListenable: _saveEmail,
+                        builder: (context, saveEmail, child) {
+                          return CheckboxListTile(
+                            title: const Text("Salvar e-mail"),
+                            value: saveEmail,
+                            onChanged: (newValue) {
+                              _saveEmail.value = newValue ?? _saveEmail.value;
+                            },
+                            controlAffinity: ListTileControlAffinity.leading,
+                          );
+                        },
+                      ),
+                      TextFormField(
+                        controller: _passwordController,
+                        decoration: const InputDecoration(labelText: 'Senha'),
+                        obscureText: true,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Por favor, insira sua senha';
+                          }
+                          return null;
+                        },
+                      ),
+                      ElevatedButton(
+                        onPressed: () {
+                          if (_formKey.currentState != null &&
+                              _formKey.currentState!.validate()) {
+                            _signIn();
+                          }
+                        },
+                        child: const Text('Entrar'),
+                      ),
+                      const SizedBox(height: 20),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text("Ainda não tem conta?"),
+                          TextButton(
+                            onPressed: () {
+                              Navigator.of(context)
+                                  .pushReplacementNamed('/register');
+                            },
+                            child: const Text('Registre-se'),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text("Esqueceu sua senha?"),
+                          TextButton(
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: const Text('Redefinir senha'),
+                                  content: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      TextFormField(
+                                        controller: _resetPasswordController,
+                                        decoration: const InputDecoration(
+                                            labelText: 'Digite seu e-mail'),
+                                        validator: (value) {
+                                          if (value == null || value.isEmpty) {
+                                            return 'Por favor, insira seu e-mail';
+                                          }
+                                          if (!RegExp(
+                                                  r'\b[\w\.-]+@[\w\.-]+\.\w{2,4}\b')
+                                              .hasMatch(value)) {
+                                            return 'Por favor, insira um e-mail válido';
+                                          }
+                                          return null;
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                  actions: <Widget>[
+                                    TextButton(
+                                      onPressed: () async {
+                                        try {
+                                          await FirebaseAuth.instance
+                                              .sendPasswordResetEmail(
+                                            email: _resetPasswordController.text
+                                                .trim(),
+                                          );
+                                          Navigator.of(context).pop();
+                                        } on FirebaseAuthException catch (e) {
+                                          String errorMessage;
+                                          switch (e.code) {
+                                            case 'user-not-found':
+                                              errorMessage =
+                                                  'Nenhum usuário encontrado com esse e-mail.';
+                                              break;
+                                            default:
+                                              errorMessage =
+                                                  'Ocorreu um erro ao redefinir a senha.';
+                                              break;
+                                          }
+                                          showDialog(
+                                            context: context,
+                                            builder: (context) => AlertDialog(
+                                              title: const Text(
+                                                  'Erro ao redefinir senha'),
+                                              content: Text(errorMessage),
+                                              actions: <Widget>[
+                                                TextButton(
+                                                  onPressed: () =>
+                                                      Navigator.of(context)
+                                                          .pop(),
+                                                  child: const Text('OK'),
+                                                ),
+                                              ],
+                                            ),
+                                          );
                                         }
-                                        if (!RegExp(
-                                                r'\b[\w\.-]+@[\w\.-]+\.\w{2,4}\b')
-                                            .hasMatch(value)) {
-                                          return 'Por favor, insira um e-mail válido';
-                                        }
-                                        return null;
                                       },
+                                      child: const Text('Enviar'),
+                                    ),
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.of(context).pop(),
+                                      child: const Text('Cancelar'),
                                     ),
                                   ],
                                 ),
-                                actions: <Widget>[
-                                  TextButton(
-                                    onPressed: () async {
-                                      try {
-                                        await FirebaseAuth.instance
-                                            .sendPasswordResetEmail(
-                                          email: _resetPasswordController.text
-                                              .trim(),
-                                        );
-                                        Navigator.of(context).pop();
-                                      } on FirebaseAuthException catch (e) {
-                                        // Trata erros, como e-mail não encontrado
-                                        String errorMessage;
-                                        switch (e.code) {
-                                          case 'user-not-found':
-                                            errorMessage =
-                                                'Nenhum usuário encontrado com esse e-mail.';
-                                            break;
-                                          default:
-                                            errorMessage =
-                                                'Ocorreu um erro ao redefinir a senha.';
-                                            break;
-                                        }
-                                        // Mostra um diálogo com o erro
-                                        showDialog(
-                                          context: context,
-                                          builder: (context) => AlertDialog(
-                                            title: const Text(
-                                                'Erro ao redefinir senha'),
-                                            content: Text(errorMessage),
-                                            actions: <Widget>[
-                                              TextButton(
-                                                onPressed: () =>
-                                                    Navigator.of(context).pop(),
-                                                child: const Text('OK'),
-                                              ),
-                                            ],
-                                          ),
-                                        );
-                                      }
-                                    },
-                                    child: const Text('Enviar'),
-                                  ),
-                                  TextButton(
-                                    onPressed: () =>
-                                        Navigator.of(context).pop(),
-                                    child: const Text('Cancelar'),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                          child: const Text('Clique aqui'),
-                        ),
-                      ],
-                    ),
-                  ],
+                              );
+                            },
+                            child: const Text('Clique aqui'),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),

@@ -12,6 +12,7 @@ import 'package:provider/provider.dart';
 import 'package:complete/paginaHome/hive/hive_food_item.dart';
 import 'package:complete/paginaHome/hive/hive_refeicao.dart';
 import 'package:hive/hive.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class HomePage extends StatefulWidget {
   final String userId;
@@ -237,6 +238,13 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  String encodeQueryParameters(Map<String, String> params) {
+    return params.entries
+        .map((MapEntry<String, String> e) =>
+            '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
+        .join('&');
+  }
+
   @override
   Widget build(BuildContext context) {
     String? userId = FirebaseAuth.instance.currentUser?.uid;
@@ -274,7 +282,7 @@ class _HomePageState extends State<HomePage> {
         // Construção do layout principal com os dados atualizados
         return Scaffold(
           appBar: AppBar(
-            title: const Text("Revolution Nutri"),
+            title: const Text("RevoNutri"),
           ),
           drawer: Drawer(
             child: ListView(
@@ -323,6 +331,27 @@ class _HomePageState extends State<HomePage> {
                     Navigator.pop(context); // Fecha o Drawer
                     // Navigator.pushNamed(
                     //     context, '/profile'); // Navega para a página de perfil
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.mail),
+                  title: const Text('Mande sua sugestão'),
+                  onTap: () async {
+                    final Uri emailLaunchUri = Uri(
+                      scheme: 'mailto',
+                      path: 'gustavoabdo3@live.com', // Substitua pelo seu email
+                      query: encodeQueryParameters(<String, String>{
+                        'subject': 'Sugestão',
+                        'body': 'Escreva sua sugestão aqui...'
+                      }),
+                    );
+
+                    if (await canLaunchUrl(emailLaunchUri)) {
+                      await launchUrl(emailLaunchUri);
+                    } else {
+                      // Aqui você pode mostrar algum erro ou mensagem caso não consiga abrir o email
+                      print('Não foi possível abrir o cliente de email.');
+                    }
                   },
                 ),
                 ListTile(

@@ -52,7 +52,6 @@ class _RegisterPageState extends State<RegisterPage> {
     });
   }
 
-
   Future<void> _registerUser() async {
     // Verifica se o gênero foi selecionado
     if (_selectedGender == null) {
@@ -74,9 +73,11 @@ class _RegisterPageState extends State<RegisterPage> {
 
       // Calcula a idade a partir da data de nascimento
       final DateTime today = DateTime.now();
-      final DateTime birthDate = _selectedDate; // Supondo que _selectedDate seja a data de nascimento
+      final DateTime birthDate =
+          _selectedDate; // Supondo que _selectedDate seja a data de nascimento
       int idade = today.year - birthDate.year;
-      if (birthDate.month > today.month || (birthDate.month == today.month && birthDate.day > today.day)) {
+      if (birthDate.month > today.month ||
+          (birthDate.month == today.month && birthDate.day > today.day)) {
         idade--;
       }
 
@@ -87,7 +88,8 @@ class _RegisterPageState extends State<RegisterPage> {
         'celular': _celularController.text,
         'peso': _pesoController.text,
         'altura': _alturaController.text,
-        'genero': _selectedGender == Gender.masculino ? 'masculino' : 'feminino',
+        'genero':
+            _selectedGender == Gender.masculino ? 'masculino' : 'feminino',
         'idade': idade
       });
 
@@ -146,6 +148,7 @@ class _RegisterPageState extends State<RegisterPage> {
       initialDate: _selectedDate,
       firstDate: DateTime(1900),
       lastDate: DateTime(2101),
+      locale: const Locale('pt', 'BR'),
     );
     if (picked != null && picked != _selectedDate) {
       setState(() {
@@ -176,7 +179,7 @@ class _RegisterPageState extends State<RegisterPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Página de Registro'),
+        title: const Text(''),
       ),
       body: Padding(
         padding: const EdgeInsets.all(20),
@@ -188,10 +191,6 @@ class _RegisterPageState extends State<RegisterPage> {
                 controller: _nomeController,
                 decoration: const InputDecoration(
                   labelText: 'Nome Completo',
-                  // labelStyle: TextStyle(
-                  //   fontWeight: FontWeight.bold,
-                  //   fontSize: 16,
-                  // ),
                   hintText: 'Digite seu nome completo',
                 ),
                 validator: (value) {
@@ -213,10 +212,6 @@ class _RegisterPageState extends State<RegisterPage> {
                 controller: _cpfController,
                 decoration: const InputDecoration(
                   labelText: 'CPF',
-                  // labelStyle: TextStyle(
-                  //   fontWeight: FontWeight.bold,
-                  //   fontSize: 16,
-                  // ),
                   hintText: '000.000.000-00',
                 ),
                 keyboardType: TextInputType.number,
@@ -245,6 +240,8 @@ class _RegisterPageState extends State<RegisterPage> {
                     onPressed: () => _selectDate(context),
                   ),
                 ),
+                readOnly: true, // torna o campo de texto somente leitura
+                onTap: () => _selectDate(context),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Por favor, insira sua data de nascimento';
@@ -360,6 +357,16 @@ class _RegisterPageState extends State<RegisterPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pushReplacementNamed(
+                          '/login'); // Retorna à tela anterior
+                    },
+                    style: ElevatedButton.styleFrom(
+                      foregroundColor: Colors.grey,
+                    ),
+                    child: const Text('Cancelar'),
+                  ),
+                  ElevatedButton(
                     onPressed: () async {
                       if (_formKey.currentState!.validate()) {
                         bool cpfCadastrado = await cpfJaCadastrado(
@@ -374,17 +381,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       }
                     },
                     child: const Text('Registrar'),
-                  ),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.of(context)
-                                .pushReplacementNamed('/login'); // Retorna à tela anterior
-                    },
-                    style: ElevatedButton.styleFrom(
-                      foregroundColor: Colors.grey,
-                    ),
-                    child: const Text('Cancelar'),
-                  ),
+                  ),                  
                 ],
               ),
             ],
