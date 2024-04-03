@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:complete/paginaRegLog/password_field.dart';
 import 'package:flutter_masked_text2/flutter_masked_text2.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -26,6 +27,8 @@ class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController _celularController = TextEditingController();
   final TextEditingController _pesoController = TextEditingController();
   final TextEditingController _alturaController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
   DateTime _selectedDate = DateTime.now();
 
   Gender? _selectedGender;
@@ -40,6 +43,7 @@ class _RegisterPageState extends State<RegisterPage> {
     _celularController.dispose();
     _pesoController.dispose();
     _alturaController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
@@ -338,21 +342,29 @@ class _RegisterPageState extends State<RegisterPage> {
                   return null;
                 },
               ),
-              TextFormField(
+              PasswordField(
                 controller: _passwordController,
-                decoration: const InputDecoration(
-                    labelText: 'Senha',
-                    hintText: 'Digite sua senha',
-                    suffixIcon: Icon(Icons.lock)),
-                obscureText: true,
+                labelText: 'Senha',
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Por favor, insira sua senha';
                   }
+                  return null; // Retorna null se o valor passar na validação
+                },
+              ),
+              PasswordField(
+                controller: _confirmPasswordController,
+                labelText: "Confirme sua senha",
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Por favor, confirme sua senha';
+                  } else if (_passwordController.text !=
+                      _confirmPasswordController.text) {
+                    return 'As senhas não correspondem';
+                  }
                   return null;
                 },
               ),
-              // Adicionar os outros TextFormField aqui...
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
@@ -381,7 +393,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       }
                     },
                     child: const Text('Registrar'),
-                  ),                  
+                  ),
                 ],
               ),
             ],

@@ -1,3 +1,4 @@
+import 'package:complete/paginaRegLog/password_field.dart';
 import 'package:firebase_auth/firebase_auth.dart' hide EmailAuthProvider;
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -12,6 +13,7 @@ class _CustomSignInScreenState extends State<CustomSignInScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _resetPasswordController = TextEditingController();
+  bool _obscureText = true;
 
   Future<void> _signIn() async {
     if (_formKey.currentState!.validate()) {
@@ -95,6 +97,12 @@ class _CustomSignInScreenState extends State<CustomSignInScreen> {
     await _loadSaveEmailPreference();
   }
 
+  void _togglePasswordVisibility() {
+    setState(() {
+      _obscureText = !_obscureText;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
@@ -144,15 +152,14 @@ class _CustomSignInScreenState extends State<CustomSignInScreen> {
                           );
                         },
                       ),
-                      TextFormField(
+                      PasswordField(
                         controller: _passwordController,
-                        decoration: const InputDecoration(labelText: 'Senha'),
-                        obscureText: true,
+                        labelText: "Senha",
                         validator: (value) {
                           if (value == null || value.isEmpty) {
                             return 'Por favor, insira sua senha';
                           }
-                          return null;
+                          return null; // Retorna null se o valor passar na validação
                         },
                       ),
                       ElevatedButton(
