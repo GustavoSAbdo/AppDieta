@@ -1,4 +1,4 @@
-import 'package:complete/paginaRegLog/password_field.dart';
+import 'package:complete/regLogPage/password_field.dart';
 import 'package:firebase_auth/firebase_auth.dart' hide EmailAuthProvider;
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';

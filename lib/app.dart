@@ -1,12 +1,12 @@
-import 'package:complete/paginaHome/home.dart';
-import 'package:complete/paginaRegLog/pag_registro_dois.dart';
-import 'package:complete/paginaRegLog/register_screen.dart';
+import 'package:complete/homePage/home.dart';
+import 'package:complete/regLogPage/pag_registro_dois.dart';
+import 'package:complete/regLogPage/register_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:complete/style/theme_changer.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
-import 'paginaRegLog/auth_gate.dart';
+import 'regLogPage/auth_gate.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});

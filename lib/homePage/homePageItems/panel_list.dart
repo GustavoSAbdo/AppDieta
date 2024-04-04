@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'classes.dart'; // Certifique-se de que este import está correto e inclui suas classes Refeicao e FoodItem
+import '../classes.dart'; // Certifique-se de que este import está correto e inclui suas classes Refeicao e FoodItem
 
 class MyExpansionPanelListWidget extends StatefulWidget {
   final String userId;

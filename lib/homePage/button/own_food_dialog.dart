@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:complete/paginaHome/hive/hive_food_item.dart';
+import 'package:complete/homePage/hive/hive_food_item.dart';
 
 class FoodDialogs {
   final BuildContext context;

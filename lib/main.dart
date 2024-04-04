@@ -5,8 +5,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:complete/style/theme_changer.dart';
 import 'package:provider/provider.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:complete/paginaHome/hive/hive_food_item.dart';
-import 'package:complete/paginaHome/hive/hive_refeicao.dart';
+import 'package:complete/homePage/hive/hive_food_item.dart';
+import 'package:complete/homePage/hive/hive_refeicao.dart';
 
 late Box<HiveFoodItem> foodBox;
 

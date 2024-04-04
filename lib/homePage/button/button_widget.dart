@@ -1,12 +1,12 @@
 import 'package:complete/main.dart';
-import 'package:complete/paginaHome/button/own_food_dialog.dart';
+import 'package:complete/homePage/button/own_food_dialog.dart';
 import 'package:flutter/material.dart';
-import 'package:complete/paginaHome/button/search_food.dart';
+import 'package:complete/homePage/button/search_food.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:complete/paginaHome/classes.dart';
+import 'package:complete/homePage/classes.dart';
 import 'dart:math';
-import 'package:complete/paginaHome/hive/hive_food_item.dart';
-import 'package:complete/paginaHome/hive/search_food_hive.dart';
+import 'package:complete/homePage/hive/hive_food_item.dart';
+import 'package:complete/homePage/button/search_food_hive.dart';
 
 class AddRemoveFoodWidget extends StatefulWidget {
   final String userId;
@@ -341,14 +341,15 @@ class _AddRemoveFoodWidgetState extends State<AddRemoveFoodWidget> {
 
     qntAlimentoProt =
         ((goal.totalProtein - currentProt) / protAlimentoProt) * 0.9;
-    calculaAlimentoGord();
+    calculaAlimentoProt();
     calculaTudo();
 
     qntAlimentoCarb = (goal.totalCarbs - currentCarb) / carbAlimentoCarb;
     calculaAlimentoCarb();
     calculaTudo();
 
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < 4; i++) { 
+
       // Gordura
       if (currentGord > porcMaisGord || currentGord < porcMenosGord) {
         if (currentGord < porcMenosGord) {
@@ -359,11 +360,26 @@ class _AddRemoveFoodWidgetState extends State<AddRemoveFoodWidget> {
               ((currentGord - goal.totalFats) / gordAlimentoGord);
         }
         qntAlimentoGord =
-            max(qntAlimentoGord, 0); // Garante que não seja negativo
+            max(qntAlimentoGord, 0); 
         calculaAlimentoGord();
         calculaTudo();
       }
 
+      // Carboidrato
+      if (currentCarb > porcMaisCarb || currentCarb < porcMenosCarb) {
+        if (currentCarb < porcMenosCarb) {
+          qntAlimentoCarb = qntAlimentoCarb +
+              ((goal.totalCarbs - currentCarb) / carbAlimentoCarb);
+        } else {
+          qntAlimentoCarb = qntAlimentoCarb -
+              ((currentCarb - goal.totalCarbs) / carbAlimentoCarb);
+        }
+        qntAlimentoCarb =
+            max(qntAlimentoCarb, 0); 
+        calculaAlimentoCarb();
+        calculaTudo();
+      }
+         
       // Proteína
       if (currentProt > porcMaisProt || currentProt < porcMenosProt) {
         if (currentProt < porcMenosProt) {
@@ -374,25 +390,11 @@ class _AddRemoveFoodWidgetState extends State<AddRemoveFoodWidget> {
               ((currentProt - goal.totalProtein) / protAlimentoProt);
         }
         qntAlimentoProt =
-            max(qntAlimentoProt, 0); // Garante que não seja negativo
+            max(qntAlimentoProt, 0); 
         calculaAlimentoProt();
         calculaTudo();
       }
 
-      // Carboidratos
-      if (currentCarb > porcMaisCarb || currentCarb < porcMenosCarb) {
-        if (currentCarb < porcMenosCarb) {
-          qntAlimentoCarb = qntAlimentoCarb +
-              ((goal.totalCarbs - currentCarb) / carbAlimentoCarb);
-        } else {
-          qntAlimentoCarb = qntAlimentoCarb -
-              ((currentCarb - goal.totalCarbs) / carbAlimentoCarb);
-        }
-        qntAlimentoCarb =
-            max(qntAlimentoCarb, 0); // Garante que não seja negativo
-        calculaAlimentoCarb();
-        calculaTudo();
-      }
     }
 
     result.add(FoodItemWithQuantity(

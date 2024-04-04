@@ -1,16 +1,16 @@
-import 'package:complete/paginaHome/classes.dart';
-import 'package:complete/paginaHome/nutrition_service.dart';
+import 'package:complete/homePage/classes.dart';
+import 'package:complete/homePage/homePageItems/nutrition_service.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'calorie_tracker.dart';
-import 'panel_list.dart';
+import 'homePageItems/calorie_tracker.dart';
+import 'homePageItems/panel_list.dart';
 import 'button/button_widget.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:complete/style/theme_changer.dart';
 import 'package:provider/provider.dart';
-import 'package:complete/paginaHome/hive/hive_food_item.dart';
-import 'package:complete/paginaHome/hive/hive_refeicao.dart';
+import 'package:complete/homePage/hive/hive_food_item.dart';
+import 'package:complete/homePage/hive/hive_refeicao.dart';
 import 'package:hive/hive.dart';
 
 class HomePage extends StatefulWidget {
@@ -244,6 +244,19 @@ class _HomePageState extends State<HomePage> {
         .join('&');
   }
 
+  String toTitleCase(String text) {
+    if (text.length <= 1) {
+      return text.toUpperCase();
+    }
+    var words = text.split(' ');
+    var capitalizedWords = words.map((word) {
+      var first = word.substring(0, 1).toUpperCase();
+      var rest = word.substring(1);
+      return '$first$rest';
+    });
+    return capitalizedWords.join(' ');
+  }
+
   @override
   Widget build(BuildContext context) {
     String? userId = FirebaseAuth.instance.currentUser?.uid;
@@ -276,60 +289,52 @@ class _HomePageState extends State<HomePage> {
         // Se houver dados disponíveis, processa-os
         Map<String, dynamic> userData =
             snapshot.data!.data() as Map<String, dynamic>;
-        String userName = userData['nome'] ?? 'Usuário';
+        String userName = toTitleCase(userData['nome'] ?? 'Usuário');
 
         // Construção do layout principal com os dados atualizados
         return Scaffold(
           appBar: AppBar(
-            title: const Text("RevoNutri"),
+            title: const Text(""),
           ),
           drawer: Drawer(
             child: ListView(
               padding: EdgeInsets.zero,
               children: <Widget>[
                 DrawerHeader(
-                  decoration: const BoxDecoration(
-                    color: Color.fromARGB(255, 255, 255, 255),
-                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
                       const Text(
-                        'Menu',
+                        'RevoNutri',
                         style: TextStyle(
-                          color: Color.fromARGB(255, 51, 44,
-                              44), // Escolha uma cor que combine com o fundo
                           fontSize: 24, // Ou o tamanho que você preferir
                         ),
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        userName,
-                        style: const TextStyle(
-                          color: Color.fromARGB(255, 51, 44, 44),
-                        ),
+                        'Olá $userName',
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.brightness_6),
-                        onPressed: () {
-                          Provider.of<ThemeNotifier>(context, listen: false)
-                              .toggleTheme();
-                        },
+                      Row(
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.brightness_6),
+                            onPressed: () {
+                              Provider.of<ThemeNotifier>(context, listen: false)
+                                  .toggleTheme();
+                            },
+                          ),
+                          const Text('Alterar Tema'),
+                        ],
                       )
                     ],
                   ),
-                ),
+                ),                
                 ListTile(
                   leading: const Icon(Icons.account_circle),
-                  title: const Text('Perfil'),
-                  onTap: () async {
-                    final refeicaoBox =
-                        Provider.of<Box<HiveRefeicao>>(context, listen: false);
-                    await refeicaoBox.clear();
-
+                  title: const Text('Modificar Dados'),
+                  onTap: () {
                     Navigator.pop(context); // Fecha o Drawer
-                    // Navigator.pushNamed(
-                    //     context, '/profile'); // Navega para a página de perfil
+                    Navigator.pushNamed(context, '/registerDois');
                   },
                 ),
                 ListTile(
@@ -348,6 +353,19 @@ class _HomePageState extends State<HomePage> {
                       Navigator.pushNamedAndRemoveUntil(
                           context, '/login', (Route<dynamic> route) => false);
                     }
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.settings),
+                  title: const Text('Resetar Refeiçoes'),
+                  onTap: () async {
+                    final refeicaoBox =
+                        Provider.of<Box<HiveRefeicao>>(context, listen: false);
+                    await refeicaoBox.clear();
+
+                    Navigator.pop(context); // Fecha o Drawer
+                    // Navigator.pushNamed(
+                    //     context, '/profile'); // Navega para a página de perfil
                   },
                 ),
               ],

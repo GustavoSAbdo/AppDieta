@@ -1,5 +1,5 @@
 import 'package:hive/hive.dart';
-import 'package:complete/paginaHome/hive/hive_food_item.dart'; // Substitua pelo caminho correto para o arquivo que contém a classe HiveFoodItem
+import 'package:complete/homePage/hive/hive_food_item.dart'; // Substitua pelo caminho correto para o arquivo que contém a classe HiveFoodItem
 
 part 'hive_refeicao.g.dart'; // Nome do arquivo gerado pelo Hive
 

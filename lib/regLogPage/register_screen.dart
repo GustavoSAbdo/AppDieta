@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:complete/paginaRegLog/password_field.dart';
+import 'package:complete/regLogPage/password_field.dart';
 import 'package:flutter_masked_text2/flutter_masked_text2.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:intl_phone_number_input/intl_phone_number_input.dart';
 import 'package:cpf_cnpj_validator/cpf_validator.dart';
-import 'package:complete/paginaRegLog/custom_phone_input.dart';
+import 'package:complete/regLogPage/custom_phone_input.dart';
 
 class RegisterPage extends StatefulWidget {
   @override
@@ -25,11 +25,10 @@ class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController _cpfController =
       MaskedTextController(mask: '000.000.000-00');
   final TextEditingController _celularController = TextEditingController();
-  final TextEditingController _pesoController = TextEditingController();
-  final TextEditingController _alturaController = TextEditingController();
   final TextEditingController _confirmPasswordController =
       TextEditingController();
   DateTime _selectedDate = DateTime.now();
+  bool _isLoading = false;
 
   Gender? _selectedGender;
 
@@ -41,8 +40,6 @@ class _RegisterPageState extends State<RegisterPage> {
     _nomeController.dispose();
     _cpfController.dispose();
     _celularController.dispose();
-    _pesoController.dispose();
-    _alturaController.dispose();
     _confirmPasswordController.dispose();
     super.dispose();
   }
@@ -90,8 +87,6 @@ class _RegisterPageState extends State<RegisterPage> {
         'nome': _nomeController.text,
         'cpf': _cpfController.text,
         'celular': _celularController.text,
-        'peso': _pesoController.text,
-        'altura': _alturaController.text,
         'genero':
             _selectedGender == Gender.masculino ? 'masculino' : 'feminino',
         'idade': idade
@@ -271,43 +266,6 @@ class _RegisterPageState extends State<RegisterPage> {
                   return null;
                 },
               ),
-              TextFormField(
-                controller: _pesoController,
-                decoration: const InputDecoration(
-                    labelText: 'Peso (kg)', hintText: 'Digite seu peso atual'),
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor, insira seu peso';
-                  }
-                  final peso = double.tryParse(value.replaceAll(',', '.'));
-                  if (peso == null) {
-                    return 'Por favor, insira um número válido';
-                  } else if (peso < 15 || peso > 300) {
-                    return 'O peso deve estar entre 15kg e 300kg';
-                  }
-                  return null;
-                },
-              ),
-              TextFormField(
-                controller: _alturaController,
-                decoration: const InputDecoration(
-                    labelText: 'Altura (cm)', hintText: 'Digite sua altura'),
-                keyboardType: TextInputType.number,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor, insira sua altura';
-                  }
-                  final altura = int.tryParse(value);
-                  if (altura == null) {
-                    return 'Por favor, insira um número válido!';
-                  } else if (altura < 50 || altura > 300) {
-                    return 'Altura inválida!';
-                  }
-                  return null;
-                },
-              ),
               RadioListTile<Gender>(
                 title: const Text('Masculino'),
                 value: Gender.masculino,
@@ -374,25 +332,45 @@ class _RegisterPageState extends State<RegisterPage> {
                           '/login'); // Retorna à tela anterior
                     },
                     style: ElevatedButton.styleFrom(
-                      foregroundColor: Colors.grey,
+                      foregroundColor: Colors
+                          .grey, // Cor do texto quando o botão está habilitado
                     ),
                     child: const Text('Cancelar'),
                   ),
                   ElevatedButton(
-                    onPressed: () async {
-                      if (_formKey.currentState!.validate()) {
-                        bool cpfCadastrado = await cpfJaCadastrado(
-                            _cpfController.text
-                                .replaceAll('.', '')
-                                .replaceAll('-', ''));
-                        if (cpfCadastrado) {
-                          _showErrorDialog('Erro', 'CPF já cadastrado!');
-                        } else {
-                          _registerUser();
-                        }
-                      }
-                    },
-                    child: const Text('Registrar'),
+                    onPressed: _isLoading
+                        ? null
+                        : () async {
+                            FocusScope.of(context).unfocus();
+                            if (_formKey.currentState!.validate()) {
+                              bool cpfCadastrado = await cpfJaCadastrado(
+                                  _cpfController.text
+                                      .replaceAll('.', '')
+                                      .replaceAll('-', ''));
+                              if (cpfCadastrado) {
+                                _showErrorDialog('Erro', 'CPF já cadastrado!');
+                              } else {
+                                setState(() => _isLoading = true);
+                                await _registerUser();
+                                if (mounted) setState(() => _isLoading = false);
+                              }
+                            }
+                          },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _isLoading
+                          ? Colors.blueGrey
+                          : Theme.of(context)
+                              .colorScheme
+                              .primary, // Cor de fundo do botão
+                      foregroundColor:
+                          Colors.white, // Cor do texto e ícones do botão
+                    ),
+                    child: _isLoading
+                        ? const CircularProgressIndicator(
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(Colors.white),
+                          )
+                        : const Text('Registrar'),
                   ),
                 ],
               ),
