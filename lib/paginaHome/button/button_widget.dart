@@ -50,12 +50,14 @@ class _AddRemoveFoodWidgetState extends State<AddRemoveFoodWidget> {
                             leading: Radio<int>(
                               value: i,
                               groupValue: selectedRefeicao,
-                              onChanged: modifiedMeals.contains(i) ? null : (int? value) {
-                                // Atualiza o estado do diálogo, não do widget inteiro
-                                setStateDialog(() {
-                                  selectedRefeicao = value;
-                                });
-                              },
+                              onChanged: modifiedMeals.contains(i)
+                                  ? null
+                                  : (int? value) {
+                                      // Atualiza o estado do diálogo, não do widget inteiro
+                                      setStateDialog(() {
+                                        selectedRefeicao = value;
+                                      });
+                                    },
                             ),
                           )),
                 ),
@@ -120,8 +122,7 @@ class _AddRemoveFoodWidgetState extends State<AddRemoveFoodWidget> {
                           nutrientDominant:
                               nutrient, // Filtro de macronutriente
                           foodBox: foodBox, // Passa foodBox como um argumento
-                          onFoodSelected:
-                              (HiveFoodItem selectedFood) {
+                          onFoodSelected: (HiveFoodItem selectedFood) {
                             // Adiciona o alimento selecionado à lista correspondente
                             targetList
                                 .add(FoodItem.fromMap(selectedFood.toMap()));
@@ -148,26 +149,32 @@ class _AddRemoveFoodWidgetState extends State<AddRemoveFoodWidget> {
                 actions: <Widget>[
                   TextButton(
                     onPressed: () {
-                      shouldContinue = false; // Atualiza a variável de controle
-                      Navigator.of(context).pop();
-                    },
-                    child: const Text('Cancelar'),
-                  ),
-                  TextButton(
-                    onPressed: () {
                       setState(() {
                         searchInOwnFoods = !searchInOwnFoods;
                       });
                     },
                     child: const Text('Procurar em alimentos próprios'),
                   ),
-                  TextButton(
-                    onPressed: () {
-                      setState(() {
-                        searchInOwnFoods = false;
-                      });
-                    },
-                    child: const Text('Procurar alimentos'),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      TextButton(
+                        onPressed: () {
+                          shouldContinue =
+                              false; // Atualiza a variável de controle
+                          Navigator.of(context).pop();
+                        },
+                        child: const Text('Cancelar'),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          setState(() {
+                            searchInOwnFoods = false;
+                          });
+                        },
+                        child: const Text('Procurar alimentos'),
+                      ),
+                    ],
                   ),
                 ],
               );
@@ -407,7 +414,8 @@ class _AddRemoveFoodWidgetState extends State<AddRemoveFoodWidget> {
 
   @override
   Widget build(BuildContext context) {
-    foodDialogs = foodDialogs ?? FoodDialogs(context: context, foodBox: foodBox);
+    foodDialogs =
+        foodDialogs ?? FoodDialogs(context: context, foodBox: foodBox);
     return StreamBuilder<DocumentSnapshot>(
       stream: FirebaseFirestore.instance
           .collection('users')
