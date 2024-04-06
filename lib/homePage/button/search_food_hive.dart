@@ -37,6 +37,7 @@ class _SearchAndSelectFoodFromHiveWidgetState
     });
     searchController.clear();
     searchQuery = '';
+    FocusScope.of(context).unfocus();
   }
 
   void removeFoodAt(int index) {

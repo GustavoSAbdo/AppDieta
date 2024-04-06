@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import '../classes.dart'; // Certifique-se de que este import está correto e inclui suas classes Refeicao e FoodItem
+import '../classes.dart';
 
 class MyExpansionPanelListWidget extends StatefulWidget {
   final String userId;
   final List<Refeicao> refeicoes;
   final Function(int, Refeicao) onRefeicaoUpdated;
-  // Adicionando totalDiario de nutrientes como parâmetros por simplicidade
+  
   final double totalDailyCalories;
   final double totalDailyProtein;
   final double totalDailyCarbs;
@@ -40,7 +40,7 @@ class _MyExpansionPanelListWidgetState
   Widget buildNutritionSummary(String label, double total, double goal) {
     return Text(
       '$label: ${total.toStringAsFixed(2)} / ${goal.toStringAsFixed(2)}',
-      style: TextStyle(fontWeight: FontWeight.bold),
+      style: const TextStyle(fontWeight: FontWeight.bold),
     );
   }
 
@@ -74,7 +74,7 @@ class _MyExpansionPanelListWidgetState
                       subtitle: Text(
                           'Calorias: ${foodItem.calories.toStringAsFixed(2)}, Proteínas: ${foodItem.protein.toStringAsFixed(2)}, Carboidratos: ${foodItem.carbs.toStringAsFixed(2)}, Gorduras: ${foodItem.fats.toStringAsFixed(2)}'),
                     )),
-                Divider(color: Colors.grey),
+                const Divider(color: Colors.grey),
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 8.0),
                   child: Column(

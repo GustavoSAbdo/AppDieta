@@ -28,6 +28,11 @@ class _AddRemoveFoodWidgetState extends State<AddRemoveFoodWidget> {
   late MealGoal mealGoal;
   FoodDialogs? foodDialogs;
   List<int> modifiedMeals = [];
+  bool verificationProt = false;
+  bool verificationCarb = false;
+  bool verificationGord = false;
+  List<FoodItemWithQuantity> allSelectedFoodsWithQuantities = [];
+  Offset position = Offset(0, 0);
 
   void showRefeicaoDialog(int numRef) {
     // Define a variável selectedRefeicao fora do builder do showDialog
@@ -136,35 +141,23 @@ class _AddRemoveFoodWidgetState extends State<AddRemoveFoodWidget> {
                           nutrientDominant:
                               nutrient, // Filtro de macronutriente
                           onFoodSelected: (Map<String, dynamic> selectedFood) {
-                            // Converte o mapa do alimento selecionado para o objeto FoodItem e adiciona à lista correspondente
                             FoodItem foodItem = FoodItem.fromMap(selectedFood);
                             targetList.add(foodItem);
-                            searchInOwnFoods =
-                                false; // Define searchInOwnFoods como false
-                            Navigator.of(context)
-                                .pop(); // Fecha o diálogo após a seleção
+                            searchInOwnFoods = false;
                           },
                         ),
                 ),
                 actions: <Widget>[
-                  TextButton(
-                    onPressed: () {
-                      setState(() {
-                        searchInOwnFoods = !searchInOwnFoods;
-                      });
-                    },
-                    child: const Text('Procurar em alimentos próprios'),
-                  ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
                       TextButton(
                         onPressed: () {
-                          shouldContinue =
-                              false; // Atualiza a variável de controle
-                          Navigator.of(context).pop();
+                          setState(() {
+                            searchInOwnFoods = !searchInOwnFoods;
+                          });
                         },
-                        child: const Text('Cancelar'),
+                        child: const Text('Alimentos próprios'),
                       ),
                       TextButton(
                         onPressed: () {
@@ -172,10 +165,28 @@ class _AddRemoveFoodWidgetState extends State<AddRemoveFoodWidget> {
                             searchInOwnFoods = false;
                           });
                         },
-                        child: const Text('Procurar alimentos'),
+                        child: const Text('Banco de dados'),
                       ),
                     ],
                   ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      TextButton(
+                        onPressed: () {
+                          shouldContinue = false;
+                          Navigator.of(context).pop();
+                        },
+                        child: const Text('Cancelar'),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                        },
+                        child: const Text('Próximo'),
+                      ),
+                    ],
+                  )
                 ],
               );
             },
@@ -191,9 +202,23 @@ class _AddRemoveFoodWidgetState extends State<AddRemoveFoodWidget> {
     if (!shouldContinue) return; // Verifica se deve continuar
     await selectFoodByNutrient('gordura', tempSelectedFoodsFat);
     mealGoal = widget.mealGoal;
-    List<FoodItemWithQuantity> allSelectedFoodsWithQuantities =
-        calculateFoodQuantities(tempSelectedFoodsCarb, tempSelectedFoodsProtein,
-            tempSelectedFoodsFat, widget.mealGoal);
+    bool controllerProteinMais = verificaAliMais(tempSelectedFoodsProtein);
+    bool controllerCarbsMais = verificaAliMais(tempSelectedFoodsCarb);
+    bool controllerFatsMais = verificaAliMais(tempSelectedFoodsFat);
+
+    if (controllerFatsMais || controllerCarbsMais || controllerProteinMais) {
+      allSelectedFoodsWithQuantities = calculateFoodQuantitiesUmAMais(
+          tempSelectedFoodsCarb,
+          tempSelectedFoodsProtein,
+          tempSelectedFoodsFat,
+          widget.mealGoal);
+    } else {
+      allSelectedFoodsWithQuantities = calculateFoodQuantities(
+          tempSelectedFoodsCarb,
+          tempSelectedFoodsProtein,
+          tempSelectedFoodsFat,
+          widget.mealGoal);
+    }
 
     // Apresenta a visão geral das quantidades de alimentos selecionados para confirmação
     showDialog(
@@ -241,10 +266,9 @@ class _AddRemoveFoodWidgetState extends State<AddRemoveFoodWidget> {
     );
   }
 
-  List<FoodItemWithQuantity> calculateFoodQuantities(List<FoodItem> carbs,
-      List<FoodItem> protein, List<FoodItem> fats, MealGoal goal) {
+  List<FoodItemWithQuantity> calculateQuantities(
+      FoodItem carbs, FoodItem protein, FoodItem fats, MealGoal goal) {
     double currentProt = 0, currentCarb = 0, currentGord = 0;
-    double holderGord;
 
     List<FoodItemWithQuantity> result = [];
     double porcMaisProt = goal.totalProtein * 1.05;
@@ -254,28 +278,26 @@ class _AddRemoveFoodWidgetState extends State<AddRemoveFoodWidget> {
     double porcMenosCarb = goal.totalCarbs * 0.95;
     double porcMenosGord = goal.totalFats * 0.95;
 
-    FoodItem alimentoProt = protein[0];
-    double protAlimentoProt = alimentoProt.protein / 100;
-    double carbAlimentoProt = alimentoProt.carbs / 100;
-    double gordAlimentoProt = alimentoProt.fats / 100;
+    protein.name;
+    double protAlimentoProt = protein.protein / 100;
+    double carbAlimentoProt = protein.carbs / 100;
+    double gordAlimentoProt = protein.fats / 100;
     double totalProtAlimentoProt = 0;
     double totalCarbAlimentoProt = 0;
     double totalGordAlimentoProt = 0;
     double qntAlimentoProt = 0;
 
-    FoodItem alimentoCarb = carbs[0];
-    double protAlimentoCarb = alimentoCarb.protein / 100;
-    double carbAlimentoCarb = alimentoCarb.carbs / 100;
-    double gordAlimentoCarb = alimentoCarb.fats / 100;
+    double protAlimentoCarb = carbs.protein / 100;
+    double carbAlimentoCarb = carbs.carbs / 100;
+    double gordAlimentoCarb = carbs.fats / 100;
     double totalProtAlimentoCarb = 0;
     double totalCarbAlimentoCarb = 0;
     double totalGordAlimentoCarb = 0;
     double qntAlimentoCarb = 0;
 
-    FoodItem alimentoGord = fats[0];
-    double protAlimentoGord = alimentoGord.protein / 100;
-    double carbAlimentoGord = alimentoGord.carbs / 100;
-    double gordAlimentoGord = alimentoGord.fats / 100;
+    double protAlimentoGord = fats.protein / 100;
+    double carbAlimentoGord = fats.carbs / 100;
+    double gordAlimentoGord = fats.fats / 100;
     double totalProtAlimentoGord = 0;
     double totalCarbAlimentoGord = 0;
     double totalGordAlimentoGord = 0;
@@ -287,26 +309,17 @@ class _AddRemoveFoodWidgetState extends State<AddRemoveFoodWidget> {
       totalGordAlimentoProt = gordAlimentoProt * qntAlimentoProt;
     }
 
-    // holderGord = goal.totalFats * 0.6;
-    // qntAlimentoGord = holderGord / gordAlimentoGord;
-
     void calculaAlimentoGord() {
       totalProtAlimentoGord = protAlimentoGord * qntAlimentoGord;
       totalCarbAlimentoGord = carbAlimentoGord * qntAlimentoGord;
       totalGordAlimentoGord = gordAlimentoGord * qntAlimentoGord;
     }
-    //calculaAlimentoGord();
-
-    // holderCarb = goal.totalCarbs * 0.8;
-    // qntAlimentoCarb = holderCarb / carbAlimentoCarb;
 
     void calculaAlimentoCarb() {
       totalProtAlimentoCarb = protAlimentoCarb * qntAlimentoCarb;
       totalCarbAlimentoCarb = carbAlimentoCarb * qntAlimentoCarb;
       totalGordAlimentoCarb = gordAlimentoCarb * qntAlimentoCarb;
     }
-
-    //calculaAlimentoCarb();
 
     void calculaProt() {
       currentProt =
@@ -329,27 +342,30 @@ class _AddRemoveFoodWidgetState extends State<AddRemoveFoodWidget> {
       calculaGord();
     }
 
-    // holderProt = goal.totalProtein * 0.7;
-    // qntAlimentoProt = holderProt / protAlimentoProt;
-    // calculaAlimentoProt();
+    // double holderGord = goal.totalFats * 0.7;
+    // qntAlimentoGord = holderGord / gordAlimentoGord;
+    // calculaAlimentoGord();
     // calculaTudo();
 
-    holderGord = goal.totalFats * 0.7;
-    qntAlimentoGord = holderGord / gordAlimentoGord;
+    double holderProt = goal.totalProtein * 0.7;
+    qntAlimentoProt = holderProt / protAlimentoProt;
+    calculaAlimentoProt();
+    calculaTudo();
+
+    qntAlimentoGord = (goal.totalFats - currentGord) / gordAlimentoGord * 0.8;
     calculaAlimentoGord();
     calculaTudo();
 
-    qntAlimentoProt =
-        ((goal.totalProtein - currentProt) / protAlimentoProt) * 0.9;
-    calculaAlimentoProt();
-    calculaTudo();
+    // qntAlimentoProt =
+    //     ((goal.totalProtein - currentProt) / protAlimentoProt) * 0.9;
+    // calculaAlimentoProt();
+    // calculaTudo();
 
     qntAlimentoCarb = (goal.totalCarbs - currentCarb) / carbAlimentoCarb;
     calculaAlimentoCarb();
     calculaTudo();
 
-    for (int i = 0; i < 4; i++) { 
-
+    for (int i = 0; i < 4; i++) {
       // Gordura
       if (currentGord > porcMaisGord || currentGord < porcMenosGord) {
         if (currentGord < porcMenosGord) {
@@ -359,8 +375,7 @@ class _AddRemoveFoodWidgetState extends State<AddRemoveFoodWidget> {
           qntAlimentoGord = qntAlimentoGord -
               ((currentGord - goal.totalFats) / gordAlimentoGord);
         }
-        qntAlimentoGord =
-            max(qntAlimentoGord, 0); 
+        qntAlimentoGord = max(qntAlimentoGord, 0);
         calculaAlimentoGord();
         calculaTudo();
       }
@@ -374,12 +389,11 @@ class _AddRemoveFoodWidgetState extends State<AddRemoveFoodWidget> {
           qntAlimentoCarb = qntAlimentoCarb -
               ((currentCarb - goal.totalCarbs) / carbAlimentoCarb);
         }
-        qntAlimentoCarb =
-            max(qntAlimentoCarb, 0); 
+        qntAlimentoCarb = max(qntAlimentoCarb, 0);
         calculaAlimentoCarb();
         calculaTudo();
       }
-         
+
       // Proteína
       if (currentProt > porcMaisProt || currentProt < porcMenosProt) {
         if (currentProt < porcMenosProt) {
@@ -389,21 +403,112 @@ class _AddRemoveFoodWidgetState extends State<AddRemoveFoodWidget> {
           qntAlimentoProt = qntAlimentoProt -
               ((currentProt - goal.totalProtein) / protAlimentoProt);
         }
-        qntAlimentoProt =
-            max(qntAlimentoProt, 0); 
+        qntAlimentoProt = max(qntAlimentoProt, 0);
         calculaAlimentoProt();
         calculaTudo();
       }
-
     }
 
-    result.add(FoodItemWithQuantity(
-        foodItem: alimentoProt, quantity: qntAlimentoProt));
-    result.add(FoodItemWithQuantity(
-        foodItem: alimentoCarb, quantity: qntAlimentoCarb));
-    result.add(FoodItemWithQuantity(
-        foodItem: alimentoGord, quantity: qntAlimentoGord));
+    result.add(
+        FoodItemWithQuantity(foodItem: protein, quantity: qntAlimentoProt));
+    result
+        .add(FoodItemWithQuantity(foodItem: carbs, quantity: qntAlimentoCarb));
+    result.add(FoodItemWithQuantity(foodItem: fats, quantity: qntAlimentoGord));
 
+    return result;
+  }
+
+  bool verificaAliMais(List macro) {
+    return macro.length >= 2;
+  }
+
+  bool verificaAliMenos(List macro) {
+    return macro.isEmpty;
+  }
+
+  List<FoodItem> funcListaVazia(List<FoodItem> lista) {
+    List<FoodItem> result = [];
+
+    if (verificaAliMenos(lista)) {
+      FoodItem foodItemVazio = FoodItem(
+        name: '',
+        calories: 1,
+        protein: 1,
+        carbs: 1,
+        fats: 1,
+        quantity: 1,
+        dominantNutrient: '',
+      );
+
+      result.add(foodItemVazio);
+    } else {
+      result = lista;
+    }
+    return result;
+  }
+
+  List<FoodItemWithQuantity> calculateFoodQuantities(List<FoodItem> carbs,
+      List<FoodItem> protein, List<FoodItem> fats, MealGoal goal) {
+    List<FoodItemWithQuantity> result = [];
+    protein = funcListaVazia(protein);
+    carbs = funcListaVazia(carbs);
+    fats = funcListaVazia(fats);
+    result = calculateQuantities(carbs[0], protein[0], fats[0], goal);
+    return result;
+  }
+
+  List<FoodItemWithQuantity> calculateFoodQuantitiesUmAMais(
+      List<FoodItem> carbs,
+      List<FoodItem> protein,
+      List<FoodItem> fats,
+      MealGoal goal) {
+    bool controllerProtein = false;
+    bool controllerCarbs = false;
+    bool controllerFats = false;
+    List<FoodItemWithQuantity> resultUm = [];
+    List<FoodItemWithQuantity> resultDois = [];
+    List<FoodItemWithQuantity> result = [];
+    MealGoal goalSessenta = MealGoal(
+        totalCalories: goal.totalCalories * 0.60,
+        totalProtein: goal.totalProtein * 0.60,
+        totalCarbs: goal.totalCarbs * 0.60,
+        totalFats: goal.totalFats * 0.60);
+
+    MealGoal goalQuarenta = MealGoal(
+        totalCalories: goal.totalCalories * 0.40,
+        totalProtein: goal.totalProtein * 0.40,
+        totalCarbs: goal.totalCarbs * 0.40,
+        totalFats: goal.totalFats * 0.40);
+
+    controllerProtein = verificaAliMais(protein);
+    controllerCarbs = verificaAliMais(carbs);
+    controllerFats = verificaAliMais(fats);
+    if (!controllerProtein) {
+      protein.add(protein[0]);
+    }
+    if (!controllerCarbs) {
+      carbs.add(carbs[0]);
+    }
+    if (!controllerFats) {
+      fats.add(fats[0]);
+    }
+
+    resultUm = calculateQuantities(carbs[0], protein[0], fats[0], goalSessenta);
+    resultDois =
+        calculateQuantities(carbs[1], protein[1], fats[1], goalQuarenta);
+    resultUm.addAll(resultDois);
+
+    Map<String, FoodItemWithQuantity> foodMap = {};
+
+    for (var item in resultUm) {
+      if (foodMap.containsKey(item.foodItem.name)) {
+        foodMap[item.foodItem.name]?.quantity += item.quantity;
+      } else {
+        foodMap[item.foodItem.name] = item;
+      }
+    }
+
+    result = foodMap.values.toList();
     return result;
   }
 
@@ -412,12 +517,22 @@ class _AddRemoveFoodWidgetState extends State<AddRemoveFoodWidget> {
     super.initState();
     foodDialogs =
         foodDialogs ?? FoodDialogs(context: context, foodBox: foodBox);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final Size screenSize = MediaQuery.of(context).size;
+      setState(() {
+        position = Offset(screenSize.width - 56, screenSize.height - 56);
+      });
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     foodDialogs =
         foodDialogs ?? FoodDialogs(context: context, foodBox: foodBox);
+    final screenSize = MediaQuery.of(context).size;
+    final appBarHeight = AppBar().preferredSize.height;
+    final statusBarHeight = MediaQuery.of(context).padding.top;
+
     return StreamBuilder<DocumentSnapshot>(
       stream: FirebaseFirestore.instance
           .collection('users')
@@ -428,34 +543,61 @@ class _AddRemoveFoodWidgetState extends State<AddRemoveFoodWidget> {
           var userData = snapshot.data!.data() as Map<String, dynamic>;
           var numRef = userData['numRefeicoes'] ?? 0;
 
-          return FloatingActionButton(
-            onPressed: () {},
-            child: PopupMenuButton<String>(
-              onSelected: (String value) {
-                if (value == 'add') {
-                  showRefeicaoDialog(numRef);
-                } else if (value == 'remove') {
-                  foodDialogs!.showDeleteFoodDialog(context);
-                } else if (value == 'addOwn') {
-                  foodDialogs!.showAddOwnFoodDialog();
-                }
-              },
-              itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                const PopupMenuItem<String>(
-                  value: 'add',
-                  child: Text('Adicionar Refeição'),
+          return Stack(
+            children: [
+              Positioned(
+                left: position.dx,
+                top: position.dy,
+                child: GestureDetector(
+                  onPanUpdate: (details) {
+                    setState(() {
+                      var newX = position.dx + details.delta.dx;
+                      var newY = position.dy + details.delta.dy;
+
+                      const leftPadding = 30.0;
+                      const topPadding = 55.0;
+
+                      newX = newX.clamp(leftPadding, screenSize.width - 56);
+                      newY = newY.clamp(
+                          statusBarHeight + appBarHeight + topPadding,
+                          screenSize.height - 56);
+
+                      position = Offset(newX, newY);
+                    });
+                  },
+                  child: FloatingActionButton(
+                    onPressed: () {},
+                    child: PopupMenuButton<String>(
+                      onSelected: (String value) {
+                        if (value == 'add') {
+                          showRefeicaoDialog(numRef);
+                        } else if (value == 'remove') {
+                          foodDialogs!.showDeleteFoodDialog(context);
+                        } else if (value == 'addOwn') {
+                          foodDialogs!.showAddOwnFoodDialog();
+                        }
+                      },
+                      itemBuilder: (BuildContext context) =>
+                          <PopupMenuEntry<String>>[
+                        const PopupMenuItem<String>(
+                          value: 'add',
+                          child: Text('Adicionar Refeição'),
+                        ),
+                        const PopupMenuItem<String>(
+                          value: 'addOwn',
+                          child: Text('Adicionar Alimento Próprio'),
+                        ),
+                        const PopupMenuItem<String>(
+                          value: 'remove',
+                          child: Text('Remover Alimento Próprio'),
+                        ),
+                      ],
+                      icon: const Icon(Icons.add),
+                    ),
+                  ),
                 ),
-                const PopupMenuItem<String>(
-                  value: 'addOwn',
-                  child: Text('Adicionar Alimento Próprio'),
-                ),
-                const PopupMenuItem<String>(
-                  value: 'remove',
-                  child: Text('Remover Alimento Próprio'),
-                ),
-              ],
-              icon: const Icon(Icons.add),
-            ),
+              ),
+            ],
           );
         } else if (snapshot.connectionState == ConnectionState.waiting) {
           // Quando os dados estão sendo carregados...

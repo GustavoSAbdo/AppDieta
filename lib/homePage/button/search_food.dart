@@ -32,6 +32,7 @@ class _SearchAndSelectFoodWidgetState extends State<SearchAndSelectFoodWidget> {
     });
     searchController.clear();
     searchQuery = '';
+    FocusScope.of(context).unfocus();
   }
 
   void removeFoodAt(int index) {
@@ -68,7 +69,7 @@ class _SearchAndSelectFoodWidgetState extends State<SearchAndSelectFoodWidget> {
                     final food = selectedFoods[index];
                     return ListTile(
                       title: Text(food['nome']),
-                      subtitle: Text('Calorias: ${food['kcal'].toStringAsFixed(2)}'),
+                      // subtitle: Text('Calorias: ${food['kcal'].toStringAsFixed(2)}'),
                       trailing: IconButton(
                         icon: Icon(Icons.remove_circle_outline),
                         onPressed: () => removeFoodAt(index),

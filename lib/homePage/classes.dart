@@ -45,6 +45,7 @@ class FoodItemWithQuantity {
   double quantity;
 
   FoodItemWithQuantity({required this.foodItem, required this.quantity});
+  String get name => foodItem.name; 
 }
 
 class Refeicao {

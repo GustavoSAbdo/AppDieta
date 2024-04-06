@@ -226,7 +226,7 @@ class FoodDialogs {
                       ],
                     ),
                     ExpansionTile(
-                      title: Text('Gorduras',
+                      title: const Text('Gorduras',
                           style: TextStyle(color: Colors.blue, fontSize: 18.0)),
                       children: <Widget>[
                         for (var food in foodBox.values)
