@@ -447,70 +447,7 @@ class _AddRemoveFoodWidgetState extends State<AddRemoveFoodWidget> {
     return result;
   }
 
-  List<FoodItemWithQuantity> calculateFoodQuantities(List<FoodItem> carbs,
-      List<FoodItem> protein, List<FoodItem> fats, MealGoal goal) {
-    List<FoodItemWithQuantity> result = [];
-    protein = funcListaVazia(protein);
-    carbs = funcListaVazia(carbs);
-    fats = funcListaVazia(fats);
-    result = calculateQuantities(carbs[0], protein[0], fats[0], goal);
-    return result;
-  }
 
-  List<FoodItemWithQuantity> calculateFoodQuantitiesUmAMais(
-      List<FoodItem> carbs,
-      List<FoodItem> protein,
-      List<FoodItem> fats,
-      MealGoal goal) {
-    bool controllerProtein = false;
-    bool controllerCarbs = false;
-    bool controllerFats = false;
-    List<FoodItemWithQuantity> resultUm = [];
-    List<FoodItemWithQuantity> resultDois = [];
-    List<FoodItemWithQuantity> result = [];
-    MealGoal goalSessenta = MealGoal(
-        totalCalories: goal.totalCalories * 0.60,
-        totalProtein: goal.totalProtein * 0.60,
-        totalCarbs: goal.totalCarbs * 0.60,
-        totalFats: goal.totalFats * 0.60);
-
-    MealGoal goalQuarenta = MealGoal(
-        totalCalories: goal.totalCalories * 0.40,
-        totalProtein: goal.totalProtein * 0.40,
-        totalCarbs: goal.totalCarbs * 0.40,
-        totalFats: goal.totalFats * 0.40);
-
-    controllerProtein = verificaAliMais(protein);
-    controllerCarbs = verificaAliMais(carbs);
-    controllerFats = verificaAliMais(fats);
-    if (!controllerProtein) {
-      protein.add(protein[0]);
-    }
-    if (!controllerCarbs) {
-      carbs.add(carbs[0]);
-    }
-    if (!controllerFats) {
-      fats.add(fats[0]);
-    }
-
-    resultUm = calculateQuantities(carbs[0], protein[0], fats[0], goalSessenta);
-    resultDois =
-        calculateQuantities(carbs[1], protein[1], fats[1], goalQuarenta);
-    resultUm.addAll(resultDois);
-
-    Map<String, FoodItemWithQuantity> foodMap = {};
-
-    for (var item in resultUm) {
-      if (foodMap.containsKey(item.foodItem.name)) {
-        foodMap[item.foodItem.name]?.quantity += item.quantity;
-      } else {
-        foodMap[item.foodItem.name] = item;
-      }
-    }
-
-    result = foodMap.values.toList();
-    return result;
-  }
 
   @override
   void initState() {
